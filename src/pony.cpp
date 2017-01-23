@@ -389,7 +389,7 @@ class pony: pathfinding {
 				else {
 					new fadeTex(getPos(), tex::PONY_DEAD, 0.8*grid::sty, 120);
 					stats::addPoints(grid::mapid, value);
-					grid::money += value*13*exp(-0.042*grid::wave);
+					grid::money += value*13*exp(-0.039*grid::wave);
 				}
 				delete this;
 			}
