@@ -441,7 +441,7 @@ class draw {
 		}
 
 		// draw texture (with optional rotation and transparency)
-		static void tex(vec *v, double size, int id, double rot = 0, double t = 1) {
+		static void tex(vec *v, double size, int id, double rot = 0, double t = 1, bool mirr = false) {
 			if(!enableDraw) {
 				delete v;
 				return;
@@ -459,10 +459,18 @@ class draw {
 			glTranslated(-v->x, -v->y, 0);
 			glBegin(GL_QUADS);
 			if(rot == 0) {
-				glTexCoord2d(0, 1); glVertex2d(v->x-diff*(1/ar), v->y+diff);
-				glTexCoord2d(1, 1); glVertex2d(v->x+diff*(1/ar), v->y+diff);
-				glTexCoord2d(1, 0); glVertex2d(v->x+diff*(1/ar), v->y-diff);
-				glTexCoord2d(0, 0); glVertex2d(v->x-diff*(1/ar), v->y-diff);
+				if(mirr) {
+					glTexCoord2d(1, 1); glVertex2d(v->x-diff*(1/ar), v->y+diff);
+					glTexCoord2d(0, 1); glVertex2d(v->x+diff*(1/ar), v->y+diff);
+					glTexCoord2d(0, 0); glVertex2d(v->x+diff*(1/ar), v->y-diff);
+					glTexCoord2d(1, 0); glVertex2d(v->x-diff*(1/ar), v->y-diff);
+				}
+				else {
+					glTexCoord2d(0, 1); glVertex2d(v->x-diff*(1/ar), v->y+diff);
+					glTexCoord2d(1, 1); glVertex2d(v->x+diff*(1/ar), v->y+diff);
+					glTexCoord2d(1, 0); glVertex2d(v->x+diff*(1/ar), v->y-diff);
+					glTexCoord2d(0, 0); glVertex2d(v->x-diff*(1/ar), v->y-diff);
+				}
 			}
 			else {
 				// when rotated, the texture is stretched due to the aspect ratio
@@ -481,10 +489,18 @@ class draw {
 					ycorr = 1.0 + ((M_PI-rot)*(2/M_PI))*(1.0/ar - 1.0);
 				}
 
-				glTexCoord2d(0, 1); glVertex2d(v->x-diff*xcorr, v->y+diff*ycorr);
-				glTexCoord2d(1, 1); glVertex2d(v->x+diff*xcorr, v->y+diff*ycorr);
-				glTexCoord2d(1, 0); glVertex2d(v->x+diff*xcorr, v->y-diff*ycorr);
-				glTexCoord2d(0, 0); glVertex2d(v->x-diff*xcorr, v->y-diff*ycorr);
+				if(mirr) {
+					glTexCoord2d(1, 1); glVertex2d(v->x-diff*xcorr, v->y+diff*ycorr);
+					glTexCoord2d(0, 1); glVertex2d(v->x+diff*xcorr, v->y+diff*ycorr);
+					glTexCoord2d(0, 0); glVertex2d(v->x+diff*xcorr, v->y-diff*ycorr);
+					glTexCoord2d(1, 0); glVertex2d(v->x-diff*xcorr, v->y-diff*ycorr);
+				}
+				else {
+					glTexCoord2d(0, 1); glVertex2d(v->x-diff*xcorr, v->y+diff*ycorr);
+					glTexCoord2d(1, 1); glVertex2d(v->x+diff*xcorr, v->y+diff*ycorr);
+					glTexCoord2d(1, 0); glVertex2d(v->x+diff*xcorr, v->y-diff*ycorr);
+					glTexCoord2d(0, 0); glVertex2d(v->x-diff*xcorr, v->y-diff*ycorr);
+				}
 			}
 			glEnd();
 			glDisable(GL_TEXTURE_2D);
@@ -573,9 +589,9 @@ class draw {
 				glLoadIdentity();
 
 				// old periodic arrangement:
-				 /*
-				double stepx = bgSize*(1/ar)*2*relx/wx; // relative Schrittweite
-				double stepy = bgSize*2*rely/wy;
+				/*
+				   double stepx = bgSize*(1/ar)*2*relx/wx; // relative Schrittweite
+				   double stepy = bgSize*2*rely/wy;
 
 				//double fix =  bgSize/wx; // Korrekturfaktor
 				vec v(-relx+stepx/2,rely-stepy/2);

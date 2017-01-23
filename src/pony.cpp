@@ -199,12 +199,40 @@ class pony: pathfinding {
 		double health, maxhealth, shield, maxshield, speed, slowdown = 1;
 		int trojanSpawn = RARITY, trojanNum = 1, trojanRec = 0;
 		class regPony *reg;
-		double value;
+		double value, rot;
+		bool mirr;
+
+		// fix rotation and mirroring
+		void setRotation() {
+			if(finePos >= 0.5) {
+				if(dir == LEFT) {
+					mirr = true;
+					rot = 0;
+				}
+				else if(dir == RIGHT) {
+					mirr = false;
+					rot = 0;
+				}
+				else if(dir == DOWN) {
+					mirr = false;
+					rot = -1.5;
+				}
+				else if(dir == UP) {
+					mirr = false;
+					rot = 1.5;
+				}
+			}
+			else {
+				if(lastDir == LEFT) mirr = true;
+				else mirr = false;
+			}
+		}
 
 		// move pony one step
 		void move() {
 			if(grid::paused) return;
 			finePos+=speed*slowdown;
+			setRotation();
 
 			if(finePos > 1) { // change cell
 				if(dir == RIGHT) x+=1;
@@ -300,6 +328,7 @@ class pony: pathfinding {
 			// set direction
 			if(_dir == NONE) dir = getDirection(x, y, NONE);
 			else dir = _dir;
+			setRotation();
 
 			// set pony properties
 			if(_type == RARITY)
@@ -350,7 +379,7 @@ class pony: pathfinding {
 		// render callback
 		void draw() { 
 			if(draw::debugMode) fprintf(stderr, "Callback: pony()\n");
-			draw::tex(getPos(), 0.8*grid::sty, texID);
+			draw::tex(getPos(), 0.8*grid::sty, texID, rot, 1, mirr);
 			if(shield > 0) draw::tex(getPos(), 0.8*grid::sty, tex::PONY_SHIELD);
 			drawBars();
 			move();
