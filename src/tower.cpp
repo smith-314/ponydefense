@@ -607,11 +607,44 @@ class supTower {
 				cooldownMax = 3;
 
 				// fix fence orientation
-				if(grid::map[x+1][y].type == WAY && grid::map[x-1][y].type == WAY)
-					texID = tex::TOWER_FENCE; // horizontal
+				if((grid::map[x+1][y].type == WAY || grid::map[x+1][y].type == SPAWN) && //check for WAY and SPAWN
+				(grid::map[x-1][y].type == WAY || grid::map[x-1][y].type == SPAWN) &&    //full junction
+				(grid::map[x][y+1].type == WAY || grid::map[x][y+1].type == SPAWN) &&
+				(grid::map[x][y-1].type == WAY || grid::map[x][y-1].type == SPAWN)) {
+					texID = tex::TOWER_FENCE_JUNCTION;
+				}
+				else if(grid::map[x+1][y].type == WAY && grid::map[x-1][y].type == WAY) {
+					texID = tex::TOWER_FENCE_HALF;//3 branch junction horizontal
+					if(grid::map[x][y+1].type == WAY)
+						rotation = M_PI;
+					else if(grid::map[x][y+1].type == SPAWN)
+						rotation = M_PI;
+					else if(grid::map[x][y-1].type == WAY)
+						rotation = 0;
+					else if(grid::map[x][y-1].type == SPAWN)
+						rotation = 0;
+					else texID = tex::TOWER_FENCE; // horizontal
+				}
 				else if(grid::map[x][y+1].type == WAY && grid::map[x][y-1].type == WAY) {
-					texID = tex::TOWER_FENCE;
-					rotation = M_PI/2; // vertical
+					texID = tex::TOWER_FENCE_HALF;//3 branch junction vertical
+					if(grid::map[x-1][y].type == WAY)
+						rotation = -M_PI/2;
+					else if(grid::map[x-1][y].type == SPAWN)
+						rotation = -M_PI/2;
+					else if(grid::map[x+1][y].type == WAY)
+						rotation = M_PI/2;
+					else if(grid::map[x+1][y].type == SPAWN)
+						rotation = M_PI/2;
+					else {
+						texID = tex::TOWER_FENCE;
+						rotation = M_PI/2; // vertikal
+					}
+				}
+				else if(grid::map[x+1][y].type == NONE && grid::map[x-1][y].type == NONE &&
+				((grid::map[x][y+1].type == NONE && grid::map[x][y-1].type == WAY) || 
+				(grid::map[x][y-1].type == NONE && grid::map[x][y+1].type == WAY))) {
+					texID = tex::TOWER_FENCE; //end of path vertical SPAWN and BLOCKED not included
+					rotation = M_PI/2;
 				}
 				else { // rotated
 					texID = tex::TOWER_FENCE_CORN;
@@ -623,7 +656,7 @@ class supTower {
 						rotation = 0;
 					else if(grid::map[x+1][y].type == WAY && grid::map[x][y+1].type == WAY)
 						rotation = M_PI;
-					else texID = tex::TOWER_FENCE;
+					else texID = tex::TOWER_FENCE;//end of path horizontal
 				}
 			}
 			else if(type == DRONE) {
