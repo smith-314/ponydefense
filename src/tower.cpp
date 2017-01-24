@@ -602,62 +602,80 @@ class supTower {
 		double rotation = 0, health = 1, range;
 		int cooldown = 0, cooldownMax, texID;
 
+		// check if cell is WAY or SPAWN
+		bool checkCell(int _x, int _y) {
+			if(_x < 0 || _y < 0 || _x > grid::size-1 || _y > grid::size-1)
+				return false;
+			if(grid::map[_x][_y].type == WAY) return true;
+			if(grid::map[_x][_y].type == SPAWN) return true;
+			return false;
+		}
+
+		// check if surrounding fits (FENCE orientation)
+		bool checkSurr(bool up, bool down, bool left, bool right) {
+			if(up != checkCell(x, y+1)) return false;
+			if(down != checkCell(x, y-1)) return false;
+			if(left != checkCell(x-1, y)) return false;
+			if(right != checkCell(x+1, y)) return false;
+			return true;
+		}
+
 		void setTower() {
 			if(type == FENCE) {
 				cooldownMax = 3;
 
 				// fix fence orientation
-				if((grid::map[x+1][y].type == WAY || grid::map[x+1][y].type == SPAWN) && //check for WAY and SPAWN
-				(grid::map[x-1][y].type == WAY || grid::map[x-1][y].type == SPAWN) &&    //full junction
-				(grid::map[x][y+1].type == WAY || grid::map[x][y+1].type == SPAWN) &&
-				(grid::map[x][y-1].type == WAY || grid::map[x][y-1].type == SPAWN)) {
-					texID = tex::TOWER_FENCE_JUNCTION;
-				}
-				else if(grid::map[x+1][y].type == WAY && grid::map[x-1][y].type == WAY) {
-					texID = tex::TOWER_FENCE_HALF;//3 branch junction horizontal
-					if(grid::map[x][y+1].type == WAY)
-						rotation = M_PI;
-					else if(grid::map[x][y+1].type == SPAWN)
-						rotation = M_PI;
-					else if(grid::map[x][y-1].type == WAY)
-						rotation = 0;
-					else if(grid::map[x][y-1].type == SPAWN)
-						rotation = 0;
-					else texID = tex::TOWER_FENCE; // horizontal
-				}
-				else if(grid::map[x][y+1].type == WAY && grid::map[x][y-1].type == WAY) {
-					texID = tex::TOWER_FENCE_HALF;//3 branch junction vertical
-					if(grid::map[x-1][y].type == WAY)
-						rotation = -M_PI/2;
-					else if(grid::map[x-1][y].type == SPAWN)
-						rotation = -M_PI/2;
-					else if(grid::map[x+1][y].type == WAY)
-						rotation = M_PI/2;
-					else if(grid::map[x+1][y].type == SPAWN)
-						rotation = M_PI/2;
-					else {
-						texID = tex::TOWER_FENCE;
-						rotation = M_PI/2; // vertikal
-					}
-				}
-				else if(grid::map[x+1][y].type == NONE && grid::map[x-1][y].type == NONE &&
-				((grid::map[x][y+1].type == NONE && grid::map[x][y-1].type == WAY) || 
-				(grid::map[x][y-1].type == NONE && grid::map[x][y+1].type == WAY))) {
-					texID = tex::TOWER_FENCE; //end of path vertical SPAWN and BLOCKED not included
+				if(checkSurr(1,1,1,1)) texID = tex::TOWER_FENCE_JUNCTION; // full junction
+				else if(checkSurr(0,0,1,1)) texID = tex::TOWER_FENCE; // horizontal
+				else if(checkSurr(1,1,0,0)) { // vertical
+					texID = tex::TOWER_FENCE;
 					rotation = M_PI/2;
 				}
-				else { // rotated
+
+				// four types of corners
+				else if(checkSurr(1,0,1,0)) {
 					texID = tex::TOWER_FENCE_CORN;
-					if(grid::map[x-1][y].type == WAY && grid::map[x][y+1].type == WAY)
-						rotation = -M_PI/2;
-					else if(grid::map[x+1][y].type == WAY && grid::map[x][y-1].type == WAY)
-						rotation = M_PI/2;
-					else if(grid::map[x-1][y].type == WAY && grid::map[x][y-1].type == WAY)
-						rotation = 0;
-					else if(grid::map[x+1][y].type == WAY && grid::map[x][y+1].type == WAY)
-						rotation = M_PI;
-					else texID = tex::TOWER_FENCE;//end of path horizontal
+					rotation = -M_PI/2;
 				}
+				else if(checkSurr(1,0,0,1)) {
+					texID = tex::TOWER_FENCE_CORN;
+					rotation = M_PI;
+				}
+				else if(checkSurr(0,1,0,1)) {
+					texID = tex::TOWER_FENCE_CORN;
+					rotation = M_PI/2;
+				}
+				else if(checkSurr(0,1,1,0)) texID = tex::TOWER_FENCE_CORN;
+
+				// three branches
+				else if(checkSurr(1,0,1,1)) {
+					texID = tex::TOWER_FENCE_HALF;
+					rotation = M_PI;
+				}
+				else if(checkSurr(0,1,1,1)) {
+					texID = tex::TOWER_FENCE_HALF;
+					rotation = 0;
+				}
+				else if(checkSurr(1,1,1,0)) {
+					texID = tex::TOWER_FENCE_HALF;
+					rotation = -M_PI/2;
+				}
+				else if(checkSurr(1,1,0,1)) {
+					texID = tex::TOWER_FENCE_HALF;
+					rotation = M_PI/2;
+				}
+				
+				// horizontal and vertical end
+				else if(checkSurr(1,0,0,0) || checkSurr(0,1,0,0)) {
+					texID = tex::TOWER_FENCE;
+					rotation = M_PI/2;
+				}
+				else if(checkSurr(0,0,1,0) || checkSurr(0,0,0,1)) {
+					texID = tex::TOWER_FENCE;
+				}
+
+				// should not happen
+				else texID = tex::TOWER_FENCE_JUNCTION;
 			}
 			else if(type == DRONE) {
 				texID = tex::TOWER_DRONE_ATTACK;
