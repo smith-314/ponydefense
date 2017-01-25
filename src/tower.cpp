@@ -602,87 +602,80 @@ class supTower {
 		double rotation = 0, health = 1, range;
 		int cooldown = 0, cooldownMax, texID;
 
+		// check if cell is WAY or SPAWN
+		bool checkCell(int _x, int _y) {
+			if(_x < 0 || _y < 0 || _x > grid::size-1 || _y > grid::size-1)
+				return false;
+			if(grid::map[_x][_y].type == WAY) return true;
+			if(grid::map[_x][_y].type == SPAWN) return true;
+			return false;
+		}
+
+		// check if surrounding fits (FENCE orientation)
+		bool checkSurr(bool up, bool down, bool left, bool right) {
+			if(up != checkCell(x, y+1)) return false;
+			if(down != checkCell(x, y-1)) return false;
+			if(left != checkCell(x-1, y)) return false;
+			if(right != checkCell(x+1, y)) return false;
+			return true;
+		}
+
 		void setTower() {
 			if(type == FENCE) {
 				cooldownMax = 3;
 
-				// TODO: substitude 10 by mapsize -1
-				// if the 2 variables should not be in this scope, replace them
-				
-				int field_neighs_number = 0; // 0:right 1:top 2:left 3:bottom
-				bool field_neighs[4]; // saves the state of the neighbour fields true:SPAWN or WAY false:NONO or BLOCKED
-				for(int j=0; j<4; j++) field_neighs[j] = false;
-				if(x != 10){
-					if( grid::map[x+1][y].type == WAY ) field_neighs[0] = true;
-					else if( grid::map[x+1][y].type == SPAWN ) field_neighs[0] = true;
-				}
-				if(y != 0){
-					if( grid::map[x][y-1].type == WAY ) field_neighs[1] = true;
-					else if( grid::map[x][y-1].type == SPAWN ) field_neighs[1] = true;
-				}
-				if(x != 0){
-					if( grid::map[x-1][y].type == WAY ) field_neighs[2] = true;
-					else if( grid::map[x-1][y].type == SPAWN ) field_neighs[2] = true;
-				}
-				if(y != 10){
-					if( grid::map[x][y+1].type == WAY ) field_neighs[3] = true;
-					else if( grid::map[x][y+1].type == SPAWN ) field_neighs[3] = true;
-				}
-				for(int j=0; j<4; j++) field_neighs_number += field_neighs[j];//save number of neighbours
-
-				if(field_neighs_number == 4) { // full junction
-					texID = tex::TOWER_FENCE_JUNCTION;
-				}
-				else if(field_neighs_number == 3) {
-					texID = tex::TOWER_FENCE_HALF;
-					if(field_neighs[0] == false) { // three way junction
-						rotation = -M_PI/2;
-					}
-					else if(field_neighs[1] == false) {
-						rotation = M_PI;
-					}
-					else if(field_neighs[2] == false) {
-						rotation = M_PI/2;
-					}
-					else if(field_neighs[3] == false) {
-						rotation = 0;
-					}
-				}
-				else if(field_neighs_number == 2) {
-					if(field_neighs[0] == true && field_neighs[2] == true) { // horizontal
-						texID = tex::TOWER_FENCE;
-						rotation = 0;
-					}
-					else if(field_neighs[1] == true && field_neighs[3] == true) { // vertical
-						texID = tex::TOWER_FENCE;
-						rotation = M_PI/2;
-					}
-					else if(field_neighs[0] == true && field_neighs[1] == true) { // top right corner
-						texID = tex::TOWER_FENCE_CORN;
-						rotation = M_PI/2;
-					}
-					else if(field_neighs[1] == true && field_neighs[2] == true) { // top left corner
-						texID = tex::TOWER_FENCE_CORN;
-						rotation = 0;
-					}
-					else if(field_neighs[2] == true && field_neighs[3] == true) { // bottom left corner
-						texID = tex::TOWER_FENCE_CORN;
-						rotation = -M_PI/2;
-					}
-					else if(field_neighs[3] == true && field_neighs[0] == true) { // bottom right corner
-						texID = tex::TOWER_FENCE_CORN;
-						rotation = M_PI;
-					}
-				}
-				else {//path end: neighbour number should be 1
+				// fix fence orientation
+				if(checkSurr(1,1,1,1)) texID = tex::TOWER_FENCE_JUNCTION; // full junction
+				else if(checkSurr(0,0,1,1)) texID = tex::TOWER_FENCE; // horizontal
+				else if(checkSurr(1,1,0,0)) { // vertical
 					texID = tex::TOWER_FENCE;
-					if(field_neighs[1] == true || field_neighs[3] == true) { // vertical
-						rotation = M_PI/2; //horizontal
-					}
-					else {
-						rotation = 0;
-					}
+					rotation = M_PI/2;
 				}
+
+				// four types of corners
+				else if(checkSurr(1,0,1,0)) {
+					texID = tex::TOWER_FENCE_CORN;
+					rotation = -M_PI/2;
+				}
+				else if(checkSurr(1,0,0,1)) {
+					texID = tex::TOWER_FENCE_CORN;
+					rotation = M_PI;
+				}
+				else if(checkSurr(0,1,0,1)) {
+					texID = tex::TOWER_FENCE_CORN;
+					rotation = M_PI/2;
+				}
+				else if(checkSurr(0,1,1,0)) texID = tex::TOWER_FENCE_CORN;
+
+				// three branches
+				else if(checkSurr(1,0,1,1)) {
+					texID = tex::TOWER_FENCE_HALF;
+					rotation = M_PI;
+				}
+				else if(checkSurr(0,1,1,1)) {
+					texID = tex::TOWER_FENCE_HALF;
+					rotation = 0;
+				}
+				else if(checkSurr(1,1,1,0)) {
+					texID = tex::TOWER_FENCE_HALF;
+					rotation = -M_PI/2;
+				}
+				else if(checkSurr(1,1,0,1)) {
+					texID = tex::TOWER_FENCE_HALF;
+					rotation = M_PI/2;
+				}
+				
+				// horizontal and vertical end
+				else if(checkSurr(1,0,0,0) || checkSurr(0,1,0,0)) {
+					texID = tex::TOWER_FENCE;
+					rotation = M_PI/2;
+				}
+				else if(checkSurr(0,0,1,0) || checkSurr(0,0,0,1)) {
+					texID = tex::TOWER_FENCE;
+				}
+
+				// should not happen
+				else texID = tex::TOWER_FENCE_JUNCTION;
 			}
 			else if(type == DRONE) {
 				texID = tex::TOWER_DRONE_ATTACK;
