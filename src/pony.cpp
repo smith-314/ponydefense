@@ -349,7 +349,7 @@ class pony: pathfinding {
 				setPony(TWILIGHT_SPARKLE_SHIELD, 2133, 4267, 0.02);
 			else if(_type == TROJAN) {
 				if(grid::wave < 40) setPony(TROJAN, 400, 0, 0.01);
-				else setPony(TROJAN, 2000, 0, 0.01); 
+				else setPony(TROJAN, 2000*exp((grid::wave-40)*0.25), 0, 0.01); 
 			}
 			else {
 				fprintf(stderr, "Error: unknown pony (%d).\n", _type);
