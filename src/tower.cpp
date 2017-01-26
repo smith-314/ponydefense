@@ -715,7 +715,7 @@ class supTower {
 
 		bool isPegasus(int type) {
 			if(type == RARITY || type == PINKIE_PIE ||
-					type == RARITY_SHIELD || type == APPLEJACK) return false;
+					type == RARITY_SHIELD || type == APPLEJACK || type == TROJAN) return false;
 			return true;
 		}
 
