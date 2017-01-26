@@ -126,6 +126,7 @@ class stats {
 
 		static bool has(MAP mapid) {
 			if(mapid == MAP1) return true;
+			if(mapid == MAP6) return true;
 			if((mapid == MAP2 || mapid == MAP3) && rank >= 2) return true;
 			if(mapid == MAP4 && rank >= 5) return true;
 			if(mapid == MAP5 && rank >= 8) return true;
