@@ -759,6 +759,13 @@ class menu: menuBase {
 			}
 		}
 
+		// close everything
+		void closeMenu() {
+			unsetInputHook();
+			resultCallback(-1);
+			delete this;
+		}
+
 		// respond to keyboard event
 		void keyboard(unsigned char key, int x, int y) {
 			if(key == 27) { // ESC key

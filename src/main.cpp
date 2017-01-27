@@ -29,6 +29,7 @@ const char *VERSION = "V0.32";
 // forward declarations
 class backgroundPonies *bgPonies;
 void drawMainMenu();
+class menu *currentMenu = NULL;
 
 // structure to save stats of running game
 struct sgSettings {
@@ -212,6 +213,7 @@ void gameoverCallback(int res) {
 
 // build callback
 void menuCallbackBuild(int res) {
+	currentMenu = NULL;
 	// default towers
 	if(res == 1) new tower(xM, yM, RIFLE);
 	else if(res == 2) new tower(xM, yM, RAILGUN);
@@ -227,6 +229,7 @@ void menuCallbackBuild(int res) {
 
 // upgrade callback
 void menuCallbackUpgrade(int res) {
+	currentMenu = NULL;
 	// strategy
 	if(res == 2) grid::map[xM][yM].tw->setStrategy(CLOSEST);
 	else if(res == 3) grid::map[xM][yM].tw->setStrategy(STRONGEST);
@@ -240,6 +243,7 @@ void menuCallbackUpgrade(int res) {
 
 // upgrade callback (support towers)
 void menuCallbackSupUpgrade(int res) {
+	currentMenu = NULL;
 	if(res == 1) grid::map[xM][yM].ts->doUpgrade();
 	else if(res == 2) grid::map[xM][yM].ts->doRecover();
 }
@@ -295,6 +299,7 @@ void mouseClickCallback(int button, int state, int xc, int yc) {
 		char textPrice[256];
 		const char *text[] = {textPrice, NULL};
 		class menu *m = new menu("Build",  menuPos, 0.35, &menuCallbackBuild);
+		currentMenu = m;
 
 		snprintf(textPrice, 256, "%d$", (int)tower::getPrice(RIFLE, BASE));
 		m->addEntry("Rifle", (char**)text, tex::TOWER_RIFLE_PREVIEW, 1, aff(RIFLE));
@@ -332,7 +337,7 @@ void mouseClickCallback(int button, int state, int xc, int yc) {
 		char textPrice[256];
 		const char *text[] = {textPrice, NULL};
 		class menu *m = new menu("Build",  menuPos, 0.35, &menuCallbackBuild);
-
+		currentMenu = m;
 
 		if(stats::has(FENCE)) {
 			snprintf(textPrice, 256, "%d$", (int)supTower::getPrice(FENCE, BASE));
@@ -358,6 +363,7 @@ void mouseClickCallback(int button, int state, int xc, int yc) {
 		class tower *t = grid::map[xM][yM].tw;
 
 		class menu *m = new menu("Upgrade",  menuPos, 0.35, &menuCallbackUpgrade);
+		currentMenu = m;
 		// targeting
 		if(!grid::map[xM][yM].tw->isShield()) {
 			m->addEntry("Strategy", (char**)textStrategy, tex::MENU_STRATEGY, 1);
@@ -394,6 +400,7 @@ void mouseClickCallback(int button, int state, int xc, int yc) {
 		class supTower *t = grid::map[xM][yM].ts;
 
 		class menu *m = new menu("Upgrade",  menuPos, 0.35, &menuCallbackSupUpgrade);
+		currentMenu = m;
 		if(grid::map[xM][yM].ts->hasUpgrade()) {
 			snprintf(textPrice, 256, "%d$", (int)supTower::getPrice(t->getType(), t->getUpgrade()+1));
 			m->addEntry("Upgrade", (char**)text, tex::MENU_UPGRADE, 1, affUpg(xM, yM));
@@ -437,6 +444,12 @@ void keyboardCallback(unsigned char key, int x, int y) {
 
 void drawMainMenu() {
 	draw::setBackground(tex::BG_DESERT);
+
+	// check and close old menu
+	if(currentMenu != NULL) {
+		currentMenu->closeMenu();
+		currentMenu = NULL;
+	}
 
 	// create main menu
 	class menu *m = new menu("PonyDefense",  new vec(-0.25,0.3), 0.5, &mainMenuCallback, 15);
