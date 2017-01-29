@@ -1,0 +1,23 @@
+#the number of mapsize must match the number of fields
+#field types allowed:
+#b:BLOCKED, -:NONE, s:SPAWN, w:WAY
+#tags in use (everything outside tags will be ignored):
+#[begin option] [end option] with map, size
+
+[begin size]
+11
+[end size]
+
+[begin map]
+-w---------
+-wwwwwwww--
+-w---------
+-w---------
+-wwwwwww---
+-------w---
+-------w---
+wwwwwwwwwww
+-------w---
+--wwwwww---
+-----------
+[end map]

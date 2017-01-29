@@ -10,7 +10,7 @@ enum TARGETTYPE {CLOSEST, FIRST, LAST, STRONGEST};
 enum PONYTYPE {RARITY, FLUTTERSHY, PINKIE_PIE, TWILIGHT_SPARKLE, TROJAN, RARITY_SHIELD, RAINBOW_DASH, APPLEJACK, TWILIGHT_SPARKLE_SHIELD};
 enum DMGTYPE {DMGAIR, DMGGROUND};
 enum CELLTYPE {NONE, WAY, SPAWN, BLOCKED};
-enum MAP {MAP1, MAP2, MAP3, MAP4, MAP5};
+enum MAP {MAP1, MAP2, MAP3, MAP4, MAP5, MAP6};
 
 // cell structure for grid array
 struct _cell {
@@ -31,36 +31,111 @@ int xM = -1, yM = -1;
 class grid {
 	private:
 		// initialize array
-		static void createMap(int sz) {
-			size = sz;
-			map = new _cell*[size];
-			for(unsigned int x = 0; x < size; x++) {
-				map[x] = new _cell[size];
-				for(unsigned int y = 0; y < size; y++) {
-					map[x][y].type = NONE;
-					map[x][y].tw = NULL;
+		// custom map functions
+		static int checkline(char c) {
+			if(c=='#') return 0;
+			else if(c=='[') return 1;
+			else if(c==']') return 3;
+			else return 2;
+		}
+		static int getfield(char c) {
+			if(c=='-') return 0;
+			else if(c=='b') return 1;
+			else if(c=='s') return 2;
+			else if(c=='w') return 3;
+			else return 4;
+		}
+		static void createMapCustom() {
+				std::string line;
+				int rowcounter = 0;
+				int mapsize = 0;
+				int map_temp[15][15];
+				bool  maptrigger=false, sizetrigger=false, errortrigger=false;
+
+				std::ifstream mapfile ("custom_map");
+				if (mapfile.is_open()) {
+				while(getline(mapfile,line)) {
+					//string parser
+					if(line.length()) {
+						if (checkline(line.at(0)) == 0) {
+						}
+						else if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
+							if(line == "[begin map]") maptrigger=true;
+							else if (line == "[end map]") maptrigger=false;
+							else if (line == "[begin size]") sizetrigger=true;
+							else if (line == "[end size]") sizetrigger=false;
+						}
+						else if (checkline(line.at(0)) == 2) {
+
+							if(maptrigger && mapsize && line.length()==mapsize) {
+								for(int j=0; j<mapsize; j++) {
+									map_temp[j][rowcounter] = getfield(line.at(j));
+								}
+								rowcounter++;
+							}
+							else if(maptrigger && mapsize && mapsize != line.length()) {
+								errortrigger=true;
+								break;
+							}
+							else if(sizetrigger) {
+								mapsize = stoi(line);
+							}
+						}
+					}
+					//end string parser
+				}
+				mapfile.close();
+				rowcounter = 0;
+				}
+
+				if(!errortrigger){
+					size = mapsize;
+					map = new _cell*[size];
+					for(unsigned int x = 0; x < size; x++) {
+						map[x] = new _cell[size];
+						for(unsigned int y = 0; y < size; y++) {
+							if(map_temp[x][y] == 0) map[x][y].type = NONE;
+							else if(map_temp[x][y] == 1) map[x][y].type = BLOCKED;
+							else if(map_temp[x][y] == 2) map[x][y].type = SPAWN;
+							else if(map_temp[x][y] == 3) map[x][y].type = WAY;
+							else map[x][y].type = NONE;
+							map[x][y].tw = NULL;
+						}
+					}
+				}
+				else createMap(11);
+			}
+
+			static void createMap(int sz) {
+				size = sz;
+				map = new _cell*[size];
+				for(unsigned int x = 0; x < size; x++) {
+					map[x] = new _cell[size];
+					for(unsigned int y = 0; y < size; y++) {
+						map[x][y].type = NONE;
+						map[x][y].tw = NULL;
+					}
 				}
 			}
-		}
 
-		// status frame: title
-		static void drawTitle(double ypos, const char *title) {
-			color *cFrame = new color(0,0,0,0.6);
-			color *cTitle = new color(1,1,1,0.6);
-			vec *v1 = new vec(-1.0, ypos+0.05);
-			vec *v2 = new vec(-0.85, ypos);
-			draw::rect(v1, v2->clone(), cFrame->clone());
-			vec *v3 = new vec(margin-0.1, ypos);
-			v1 = new vec(-0.85, ypos+0.05);
-			draw::triangle(v1, v2, v3, cFrame);
-			draw::print(new vec(-0.99, ypos+0.01), title, cTitle);
-		}
+			// status frame: title
+			static void drawTitle(double ypos, const char *title) {
+				color *cFrame = new color(0,0,0,0.6);
+				color *cTitle = new color(1,1,1,0.6);
+				vec *v1 = new vec(-1.0, ypos+0.05);
+				vec *v2 = new vec(-0.85, ypos);
+				draw::rect(v1, v2->clone(), cFrame->clone());
+				vec *v3 = new vec(margin-0.1, ypos);
+				v1 = new vec(-0.85, ypos+0.05);
+				draw::triangle(v1, v2, v3, cFrame);
+				draw::print(new vec(-0.99, ypos+0.01), title, cTitle);
+			}
 
-		// status frame: background
-		static void drawFrame(double ypos, double ysize) {
-			color *cFrame = new color(0,0,0,0.5);
-			vec *v1 = new vec(-1.0, ypos);
-			vec *v2 = new vec(margin-0.1, ypos-ysize);
+			// status frame: background
+			static void drawFrame(double ypos, double ysize) {
+				color *cFrame = new color(0,0,0,0.5);
+				vec *v1 = new vec(-1.0, ypos);
+				vec *v2 = new vec(margin-0.1, ypos-ysize);
 			draw::rect(v1, v2, cFrame);
 		}
 
@@ -165,6 +240,9 @@ class grid {
 				for(int x = 0; x < 11; x++) map[x][2].type = WAY;
 				for(int y = 2; y < 11; y++) map[5][y].type = WAY;
 				map[5][2].type = SPAWN;
+			}
+			else if(mapid == MAP6) {
+				createMapCustom();
 			}
 			else {
 				fprintf(stderr, "Error: unknown map (%d).\n", mapid);

@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <math.h>
 #include <limits>
+#include <fstream>
 
 #include <SOIL/SOIL.h>
 #include <GL/glut.h>
@@ -87,13 +88,14 @@ void loadGame() {
 	// initialize game
 	delete bgPonies;
 	grid::init((MAP)s.mapid);
-	if(s.mapid < MAP1 || s.mapid > MAP5) {
+	if(s.mapid < MAP1 || s.mapid > MAP6) {
+	//if(s.mapid < MAP1 || s.mapid > MAP5) {
 		fprintf(stderr, "Error: savegame is damaged - unknown map.\n");
 		exit(1);
 	}
 	grid::wv = new wave();
 	stats::t = 0;
-	if(s.mapid == MAP4 || s.mapid == MAP5)
+	if(s.mapid == MAP4 || s.mapid == MAP5 || s.mapid == MAP6)
 		draw::setBackground(tex::BG_SNOW);
 	else draw::setBackground(tex::BG_DESERT);
 
@@ -428,6 +430,7 @@ void keyboardCallback(unsigned char key, int x, int y) {
 	if(key == '3') draw::speed = 4;
 	if(key == '4') draw::speed = 8;
 	if(key == '5') draw::speed = 16;
+	if(key == '?') draw::speed = 100;
 
 	// toggle debug window
 	if(key == 'd') {
@@ -452,7 +455,7 @@ void drawMainMenu() {
 	}
 
 	// create main menu
-	class menu *m = new menu("PonyDefense",  new vec(-0.25,0.3), 0.5, &mainMenuCallback, 15);
+	class menu *m = new menu("PonyDefense",  new vec(-0.25,0.3), 0.5, &mainMenuCallback, 16);
 	const char *empty[] = {"", NULL};
 	m->addEntry("New Game", (char**)empty, 0, 1);
 	const char *textMap1[] = {"Easy", "Multiplier: 1", NULL};
@@ -460,11 +463,13 @@ void drawMainMenu() {
 	const char *textMap3[] = {"Medium", "Multiplier: 3", NULL};
 	const char *textMap4[] = {"Medium", "Multiplier: 3", NULL};
 	const char *textMap5[] = {"Hard", "Multiplier: 4", NULL};
+	const char *textMap6[] = {"Extreme", "Multiplier: 4", NULL};
 	if(stats::has(MAP1)) m->addSubEntry("Map I", (char**)textMap1, tex::MAP_1_PREVIEW, 10);
 	if(stats::has(MAP2)) m->addSubEntry("Map II", (char**)textMap2, tex::MAP_2_PREVIEW, 11);
 	if(stats::has(MAP3)) m->addSubEntry("Map III", (char**)textMap3, tex::MAP_3_PREVIEW, 12);
 	if(stats::has(MAP4)) m->addSubEntry("Map IV", (char**)textMap4, tex::MAP_4_PREVIEW, 13);
 	if(stats::has(MAP5)) m->addSubEntry("Map V", (char**)textMap5, tex::MAP_5_PREVIEW, 14);
+	if(stats::has(MAP6)) m->addSubEntry("Map VI", (char**)textMap6, tex::MAP_5_PREVIEW, 15);
 
 	char *loadBuf = savegameInfo();
 	const char *loadText[] = {loadBuf, NULL};
@@ -539,6 +544,12 @@ void mainMenuCallback(int res) {
 	else if(res == 14) {
 		delete bgPonies;
 		grid::init(MAP5);
+		grid::wv = new wave();
+		draw::setBackground(tex::BG_SNOW);
+	}
+	else if(res == 15) {
+		delete bgPonies;
+		grid::init(MAP6);
 		grid::wv = new wave();
 		draw::setBackground(tex::BG_SNOW);
 	}
