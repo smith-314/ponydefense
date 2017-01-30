@@ -30,6 +30,7 @@ const char *VERSION = "V0.32";
 // forward declarations
 class backgroundPonies *bgPonies;
 void drawMainMenu();
+class menu *currentMenu = NULL;
 
 // structure to save stats of running game
 struct sgSettings {
@@ -214,6 +215,7 @@ void gameoverCallback(int res) {
 
 // build callback
 void menuCallbackBuild(int res) {
+	currentMenu = NULL;
 	// default towers
 	if(res == 1) new tower(xM, yM, RIFLE);
 	else if(res == 2) new tower(xM, yM, RAILGUN);
@@ -229,6 +231,7 @@ void menuCallbackBuild(int res) {
 
 // upgrade callback
 void menuCallbackUpgrade(int res) {
+	currentMenu = NULL;
 	// strategy
 	if(res == 2) grid::map[xM][yM].tw->setStrategy(CLOSEST);
 	else if(res == 3) grid::map[xM][yM].tw->setStrategy(STRONGEST);
@@ -242,6 +245,7 @@ void menuCallbackUpgrade(int res) {
 
 // upgrade callback (support towers)
 void menuCallbackSupUpgrade(int res) {
+	currentMenu = NULL;
 	if(res == 1) grid::map[xM][yM].ts->doUpgrade();
 	else if(res == 2) grid::map[xM][yM].ts->doRecover();
 }
@@ -297,6 +301,7 @@ void mouseClickCallback(int button, int state, int xc, int yc) {
 		char textPrice[256];
 		const char *text[] = {textPrice, NULL};
 		class menu *m = new menu("Build",  menuPos, 0.35, &menuCallbackBuild);
+		currentMenu = m;
 
 		snprintf(textPrice, 256, "%d$", (int)tower::getPrice(RIFLE, BASE));
 		m->addEntry("Rifle", (char**)text, tex::TOWER_RIFLE_PREVIEW, 1, aff(RIFLE));
@@ -334,7 +339,7 @@ void mouseClickCallback(int button, int state, int xc, int yc) {
 		char textPrice[256];
 		const char *text[] = {textPrice, NULL};
 		class menu *m = new menu("Build",  menuPos, 0.35, &menuCallbackBuild);
-
+		currentMenu = m;
 
 		if(stats::has(FENCE)) {
 			snprintf(textPrice, 256, "%d$", (int)supTower::getPrice(FENCE, BASE));
@@ -360,6 +365,7 @@ void mouseClickCallback(int button, int state, int xc, int yc) {
 		class tower *t = grid::map[xM][yM].tw;
 
 		class menu *m = new menu("Upgrade",  menuPos, 0.35, &menuCallbackUpgrade);
+		currentMenu = m;
 		// targeting
 		if(!grid::map[xM][yM].tw->isShield()) {
 			m->addEntry("Strategy", (char**)textStrategy, tex::MENU_STRATEGY, 1);
@@ -396,6 +402,7 @@ void mouseClickCallback(int button, int state, int xc, int yc) {
 		class supTower *t = grid::map[xM][yM].ts;
 
 		class menu *m = new menu("Upgrade",  menuPos, 0.35, &menuCallbackSupUpgrade);
+		currentMenu = m;
 		if(grid::map[xM][yM].ts->hasUpgrade()) {
 			snprintf(textPrice, 256, "%d$", (int)supTower::getPrice(t->getType(), t->getUpgrade()+1));
 			m->addEntry("Upgrade", (char**)text, tex::MENU_UPGRADE, 1, affUpg(xM, yM));
@@ -441,6 +448,12 @@ void keyboardCallback(unsigned char key, int x, int y) {
 void drawMainMenu() {
 	draw::setBackground(tex::BG_DESERT);
 
+	// check and close old menu
+	if(currentMenu != NULL) {
+		currentMenu->closeMenu();
+		currentMenu = NULL;
+	}
+
 	// create main menu
 	class menu *m = new menu("PonyDefense",  new vec(-0.25,0.3), 0.5, &mainMenuCallback, 16);
 	const char *empty[] = {"", NULL};
@@ -450,12 +463,15 @@ void drawMainMenu() {
 	const char *textMap3[] = {"Medium", "Multiplier: 3", NULL};
 	const char *textMap4[] = {"Medium", "Multiplier: 3", NULL};
 	const char *textMap5[] = {"Hard", "Multiplier: 4", NULL};
-	const char *textMap6[] = {"Extreme", "Multiplier: 4", NULL};
 	if(stats::has(MAP1)) m->addSubEntry("Map I", (char**)textMap1, tex::MAP_1_PREVIEW, 10);
 	if(stats::has(MAP2)) m->addSubEntry("Map II", (char**)textMap2, tex::MAP_2_PREVIEW, 11);
 	if(stats::has(MAP3)) m->addSubEntry("Map III", (char**)textMap3, tex::MAP_3_PREVIEW, 12);
 	if(stats::has(MAP4)) m->addSubEntry("Map IV", (char**)textMap4, tex::MAP_4_PREVIEW, 13);
 	if(stats::has(MAP5)) m->addSubEntry("Map V", (char**)textMap5, tex::MAP_5_PREVIEW, 14);
+
+	//menu entry custom maps
+	const char *textMap6[] = {"Your Own Maps", "Multiplier: 0", NULL};
+	m->addEntry("Custom Game", (char**)empty, 0, 1);
 	if(stats::has(MAP6)) m->addSubEntry("Map VI", (char**)textMap6, tex::MAP_5_PREVIEW, 15);
 
 	char *loadBuf = savegameInfo();

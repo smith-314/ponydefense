@@ -152,13 +152,14 @@ class regPony {
 // pathfinding engine inherited by pony class
 class pathfinding {
 	private:
-		int possibleMoves[3]; // possible directions
+		int possibleMoves[4]; // possible directions
 
 		// add direction to array
 		void addDirectionToArray(int dir) {
 			if(possibleMoves[0] == NONE) possibleMoves[0] = dir;
 			else if(possibleMoves[1] == NONE) possibleMoves[1] = dir;
 			else if(possibleMoves[2] == NONE) possibleMoves[2] = dir;
+			else possibleMoves[3] = dir;
 		}
 
 		// check array and decide
@@ -166,7 +167,8 @@ class pathfinding {
 			if(possibleMoves[0] == NONE) return NONE;
 			if(possibleMoves[1] == NONE) return possibleMoves[0];
 			if(possibleMoves[2] == NONE) return possibleMoves[randi(0,1)];
-			return possibleMoves[randi(0,2)];
+			if(possibleMoves[3] == NONE) return possibleMoves[randi(0,2)];
+			return possibleMoves[randi(0,3)];
 		}
 
 	public:
@@ -176,7 +178,7 @@ class pathfinding {
 		// calculate next direction
 		int getDirection(int x, int y, int lastDir) {
 			// reset array and check possibilities 
-			possibleMoves[0] = possibleMoves[1] = possibleMoves[2] = NONE;
+			possibleMoves[0] = possibleMoves[1] = possibleMoves[2] = possibleMoves[3] = NONE;
 			if(y < ((int)grid::size-1) && grid::map[x][y+1].type == WAY && lastDir != DOWN)
 				addDirectionToArray(UP);
 			if(y > 0 && grid::map[x][y-1].type == WAY && lastDir != UP)

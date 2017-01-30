@@ -140,6 +140,7 @@ class stats {
 			else if(mapid == MAP3) multi = 3;
 			else if(mapid == MAP4) multi = 3;
 			else if(mapid == MAP5) multi = 4;
+			else if(mapid == MAP6) multi = 0;//mod
 			if(grid::wave < 37) {
 				points+=pts*multi;
 				grid::score+=pts*multi;
@@ -151,7 +152,7 @@ class stats {
 			}
 
 			// if better - save highscore
-			if(grid::wave > maps[mapid].waves) {
+			if(grid::wave > maps[mapid].waves && mapid != MAP6) { //mod it werkz
 				maps[mapid].waves = grid::wave;
 				maps[mapid].points = grid::score;
 			}
@@ -222,7 +223,7 @@ class stats {
 			const char *text[] = {textRank, textPoints, textNextRank, NULL};
 			if(rank == 9) textNextRank[0] = '\0';
 			else snprintf(textNextRank, 512, "Next:  %d", (rank+1)*(rank+1)*(rank+1)*500-(int)points);
-			vec *v = new vec(-0.25, -0.2);
+			vec *v = new vec(-0.25, -0.3);//changed from 0.2 to 0.3
 			if(t >= 1) base.drawMessage("Rank", (char**)text, texID, v, 0.51);
 			else base.drawBuild((char**)text, v, 0.5, t);
 			delete v;
