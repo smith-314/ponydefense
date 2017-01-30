@@ -126,7 +126,7 @@ class stats {
 
 		static bool has(MAP mapid) {
 			if(mapid == MAP1) return true;
-			if(mapid == MAP6) return true;
+			if(mapid == MAPCUSTOM) return true;
 			if((mapid == MAP2 || mapid == MAP3) && rank >= 2) return true;
 			if(mapid == MAP4 && rank >= 5) return true;
 			if(mapid == MAP5 && rank >= 8) return true;
@@ -140,7 +140,7 @@ class stats {
 			else if(mapid == MAP3) multi = 3;
 			else if(mapid == MAP4) multi = 3;
 			else if(mapid == MAP5) multi = 4;
-			else if(mapid == MAP6) multi = 0;//mod
+			else if(mapid == MAPCUSTOM) multi = 0;//mod
 			if(grid::wave < 37) {
 				points+=pts*multi;
 				grid::score+=pts*multi;
@@ -152,7 +152,7 @@ class stats {
 			}
 
 			// if better - save highscore
-			if(grid::wave > maps[mapid].waves && mapid != MAP6) { //mod it werkz
+			if(grid::wave > maps[mapid].waves && mapid != MAPCUSTOM) { //mod it werkz
 				maps[mapid].waves = grid::wave;
 				maps[mapid].points = grid::score;
 			}

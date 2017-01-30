@@ -13,7 +13,7 @@
 #include <GL/glut.h>
 #include <FTGL/ftgl.h>
 
-const char *VERSION = "V0.32";
+const char *VERSION = "V0.32-dev-tie-man";
 
 #include "texture.cpp"
 #include "draw.cpp"
@@ -88,14 +88,14 @@ void loadGame() {
 	// initialize game
 	delete bgPonies;
 	grid::init((MAP)s.mapid);
-	if(s.mapid < MAP1 || s.mapid > MAP6) {
+	if(s.mapid < MAP1 || s.mapid > MAPCUSTOM) {
 	//if(s.mapid < MAP1 || s.mapid > MAP5) {
 		fprintf(stderr, "Error: savegame is damaged - unknown map.\n");
 		exit(1);
 	}
 	grid::wv = new wave();
 	stats::t = 0;
-	if(s.mapid == MAP4 || s.mapid == MAP5 || s.mapid == MAP6)
+	if(s.mapid == MAP4 || s.mapid == MAP5 || s.mapid == MAPCUSTOM)
 		draw::setBackground(tex::BG_SNOW);
 	else draw::setBackground(tex::BG_DESERT);
 
@@ -470,9 +470,15 @@ void drawMainMenu() {
 	if(stats::has(MAP5)) m->addSubEntry("Map V", (char**)textMap5, tex::MAP_5_PREVIEW, 14);
 
 	//menu entry custom maps
-	const char *textMap6[] = {"Your Own Maps", "Multiplier: 0", NULL};
+	const char *textMap6[] = {"", "", NULL};
 	m->addEntry("Custom Game", (char**)empty, 0, 1);
-	if(stats::has(MAP6)) m->addSubEntry("Map VI", (char**)textMap6, tex::MAP_5_PREVIEW, 15);
+	for(int ci=0; ci<32; ci++) {
+		if(grid::customMapExists(ci)) { 
+			char custom_entry_name[20];
+			sprintf(custom_entry_name, "Custom Map %d", ci+1);
+			if(stats::has(MAPCUSTOM)) m->addSubEntry(custom_entry_name, (char**)textMap6, tex::MAP_5_PREVIEW, 100+ci);
+		}
+	}
 
 	char *loadBuf = savegameInfo();
 	const char *loadText[] = {loadBuf, NULL};
@@ -519,6 +525,13 @@ void drawMainMenu() {
 	m->showMenu();
 }
 
+bool isCustomMap(int res) {
+	for( int ic=0; ic<32; ic++) {
+		if( res == ic + 100 ) return true;
+	}
+	return false;
+}
+
 void mainMenuCallback(int res) {
 	if(res == 10) {
 		delete bgPonies;
@@ -550,9 +563,11 @@ void mainMenuCallback(int res) {
 		grid::wv = new wave();
 		draw::setBackground(tex::BG_SNOW);
 	}
-	else if(res == 15) {
+	// custom map init
+	// 100-131 reserved for custom maps
+	else if( isCustomMap(res) ) {
 		delete bgPonies;
-		grid::init(MAP6);
+		grid::init_custom(MAPCUSTOM, res-100);
 		grid::wv = new wave();
 		draw::setBackground(tex::BG_SNOW);
 	}

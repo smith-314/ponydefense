@@ -10,7 +10,7 @@ enum TARGETTYPE {CLOSEST, FIRST, LAST, STRONGEST};
 enum PONYTYPE {RARITY, FLUTTERSHY, PINKIE_PIE, TWILIGHT_SPARKLE, TROJAN, RARITY_SHIELD, RAINBOW_DASH, APPLEJACK, TWILIGHT_SPARKLE_SHIELD};
 enum DMGTYPE {DMGAIR, DMGGROUND};
 enum CELLTYPE {NONE, WAY, SPAWN, BLOCKED};
-enum MAP {MAP1, MAP2, MAP3, MAP4, MAP5, MAP6};
+enum MAP {MAP1, MAP2, MAP3, MAP4, MAP5, MAPCUSTOM};
 
 // cell structure for grid array
 struct _cell {
@@ -45,14 +45,41 @@ class grid {
 			else if(c=='w') return 3;
 			else return 4;
 		}
-		static void createMapCustom() {//create custom map from file
+		// create directory if necessary (maps directory)
+		static void createDir(const char *dir) {
+			struct stat st = {0};
+			if (stat(dir, &st) == -1 && mkdir(dir, 0700) == -1) {
+				fprintf(stderr, "Error: can't create directory:\n%s\n", dir);
+				perror(NULL);
+				exit(1);
+			}
+		}
+		static void createMapCustom(int cmn) {//create custom map from file
+				// get path for map
+				// dir creation should not be neccesary
+				static char *path;
+				path = new char[512];
+				const char *home = getenv("HOME");
+				if(home != NULL) snprintf(path, 512, "%s/.config", home);
+				else strncpy(path, ".config", 512);
+				createDir(path);
+				strncat(path, "/ponydefense", 512);
+				createDir(path);
+				strncat(path, "/maps", 512);
+				createDir(path);
+				strncat(path, "/custom_map", 512);
+				// TODO: only for testing multiple maps
+				char mapn[15];
+				sprintf(mapn,"_%d",cmn);
+				strncat(path, mapn, 512);
+
 				std::string line;
 				int rowcounter = 0;
 				int mapsize = 0;
-				int map_temp[15][15];
+				int map_temp[15][15];// TODO: there has to be a more elegant way
 				bool  maptrigger=false, sizetrigger=false, errortrigger=false;
 
-				std::ifstream mapfile ("custom_map");
+				std::ifstream mapfile (path);
 				if (mapfile.is_open()) {
 				while(getline(mapfile,line)) {
 					//string parser
@@ -151,6 +178,7 @@ class grid {
 		// stats of the running game 
 		static bool paused, gameover;
 		static double lives, score, money;
+		static unsigned int mapamount;
 		static unsigned int wave;
 		static class wave *wv;
 
@@ -241,8 +269,8 @@ class grid {
 				for(int y = 2; y < 11; y++) map[5][y].type = WAY;
 				map[5][2].type = SPAWN;
 			}
-			else if(mapid == MAP6) {
-				createMapCustom();
+			else if(mapid == MAPCUSTOM) {
+				createMapCustom(0);
 			}
 			else {
 				fprintf(stderr, "Error: unknown map (%d).\n", mapid);
@@ -257,6 +285,55 @@ class grid {
 			// set callback
 			draw::addRenderCallback(&grid::drawGrid,(void*)&grid::size,draw::HIGHEST);
 		}
+
+		//init grid for custom map
+		static void init_custom(MAP _mapid, unsigned int _mapnumber) {
+			// reset stats 
+			if(map != NULL) cleanup();
+			mapid = _mapid;
+			paused = true;
+			gameover = false;
+			lives = 10;
+			money = 500;
+			score = wave = 0;
+
+			unsigned int mapnumber = _mapnumber; // number of created map
+
+			// load map
+			if(mapid == MAPCUSTOM) {
+				createMapCustom(mapnumber);
+			}
+			else {
+				fprintf(stderr, "Error: unknown map (%d).\n", mapid);
+				exit(1);
+			}
+
+			// set relative cellsize
+			sty = 2.0/size;
+			margin = (-2.0 + draw::ar);
+			stx = (1.0-margin)/size;
+
+			// set callback
+			draw::addRenderCallback(&grid::drawGrid,(void*)&grid::size,draw::HIGHEST);
+		}
+
+		static bool customMapExists( int mapnumber ) {//reset amount of maps
+			static char *path;
+			path = new char[512];
+			const char *home = getenv("HOME");
+			if(home != NULL) snprintf(path, 512, "%s/.config", home);
+			else strncpy(path, ".config", 512);
+			strncat(path, "/ponydefense", 512);
+			strncat(path, "/maps/", 512);
+
+			char fileName[20];
+			sprintf(fileName,"custom_map_%d",mapnumber);
+			strncat(path,fileName, 512);
+			std::ifstream infile(path);
+			if(infile.good()) return true;
+			else return false;
+		}
+		// render callback
 
 		// render callback
 		static void drawGrid() {
@@ -413,6 +490,7 @@ unsigned int grid::wave;
 MAP grid::mapid;
 bool grid::paused, grid::gameover;
 unsigned int grid::size;
+unsigned int grid::mapamount;
 double grid::stx, grid::sty, grid::margin;
 double grid::lives, grid::score, grid::money;
 class wave *grid::wv = NULL;
