@@ -45,7 +45,7 @@ class grid {
 			else if(c=='w') return 3;
 			else return 4;
 		}
-		static void createMapCustom() {
+		static void createMapCustom() {//create custom map from file
 				std::string line;
 				int rowcounter = 0;
 				int mapsize = 0;

@@ -463,12 +463,15 @@ void drawMainMenu() {
 	const char *textMap3[] = {"Medium", "Multiplier: 3", NULL};
 	const char *textMap4[] = {"Medium", "Multiplier: 3", NULL};
 	const char *textMap5[] = {"Hard", "Multiplier: 4", NULL};
-	const char *textMap6[] = {"Extreme", "Multiplier: 4", NULL};
 	if(stats::has(MAP1)) m->addSubEntry("Map I", (char**)textMap1, tex::MAP_1_PREVIEW, 10);
 	if(stats::has(MAP2)) m->addSubEntry("Map II", (char**)textMap2, tex::MAP_2_PREVIEW, 11);
 	if(stats::has(MAP3)) m->addSubEntry("Map III", (char**)textMap3, tex::MAP_3_PREVIEW, 12);
 	if(stats::has(MAP4)) m->addSubEntry("Map IV", (char**)textMap4, tex::MAP_4_PREVIEW, 13);
 	if(stats::has(MAP5)) m->addSubEntry("Map V", (char**)textMap5, tex::MAP_5_PREVIEW, 14);
+
+	//menu entry custom maps
+	const char *textMap6[] = {"Your Own Maps", "Multiplier: 0", NULL};
+	m->addEntry("Custom Game", (char**)empty, 0, 1);
 	if(stats::has(MAP6)) m->addSubEntry("Map VI", (char**)textMap6, tex::MAP_5_PREVIEW, 15);
 
 	char *loadBuf = savegameInfo();
