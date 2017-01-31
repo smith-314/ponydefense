@@ -31,100 +31,22 @@ int xM = -1, yM = -1;
 class grid {
 	private:
 		// initialize array
-		// custom map functions
-		static int checkline(char c) {
-			if(c=='#') return 0;
-			else if(c=='[') return 1;
-			else if(c==']') return 3;
-			else return 2;
-		}
-		static int getfield(char c) {
-			if(c=='-') return 0;
-			else if(c=='b') return 1;
-			else if(c=='s') return 2;
-			else if(c=='w') return 3;
-			else return 4;
-		}
-		// create directory if necessary (maps directory)
-		static void createDir(const char *dir) {
-			struct stat st = {0};
-			if (stat(dir, &st) == -1 && mkdir(dir, 0700) == -1) {
-				fprintf(stderr, "Error: can't create directory:\n%s\n", dir);
-				perror(NULL);
-				exit(1);
-			}
-		}
-		static void createMapCustom(int cmn) {//create custom map from file
-				// get path for map
-				// dir creation should not be neccesary
-				static char *path;
-				path = new char[512];
-				const char *home = getenv("HOME");
-				if(home != NULL) snprintf(path, 512, "%s/.config", home);
-				else strncpy(path, ".config", 512);
-				createDir(path);
-				strncat(path, "/ponydefense", 512);
-				createDir(path);
-				strncat(path, "/maps", 512);
-				createDir(path);
-				strncat(path, "/custom_map", 512);
-				// TODO: only for testing multiple maps
-				char mapn[15];
-				sprintf(mapn,"_%d",cmn);
-				strncat(path, mapn, 512);
-
-				std::string line;
-				int rowcounter = 0;
-				int mapsize = 0;
-				int map_temp[15][15];// TODO: there has to be a more elegant way
-				bool  maptrigger=false, sizetrigger=false, errortrigger=false;
-
-				std::ifstream mapfile (path);
-				if (mapfile.is_open()) {
-				while(getline(mapfile,line)) {
-					//string parser
-					if(line.length()) {
-						if (checkline(line.at(0)) == 0) {
-						}
-						else if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
-							if(line == "[begin map]") maptrigger=true;
-							else if (line == "[end map]") maptrigger=false;
-							else if (line == "[begin size]") sizetrigger=true;
-							else if (line == "[end size]") sizetrigger=false;
-						}
-						else if (checkline(line.at(0)) == 2) {
-
-							if(maptrigger && mapsize && line.length()==mapsize) {
-								for(int j=0; j<mapsize; j++) {
-									map_temp[j][rowcounter] = getfield(line.at(j));
-								}
-								rowcounter++;
-							}
-							else if(maptrigger && mapsize && mapsize != line.length()) {
-								errortrigger=true;
-								break;
-							}
-							else if(sizetrigger) {
-								mapsize = stoi(line);
-							}
-						}
-					}
-					//end string parser
-				}
-				mapfile.close();
-				rowcounter = 0;
-				}
-
-				if(!errortrigger){
-					size = mapsize;
+		//create custom map from file
+		static void createMapCustom(int mapnumber) {
+				//load map functions 
+				if(mapparser::customMapExists(mapnumber) && mapparser::customMapValid(mapnumber)){//this should be unneccesary because menu link only exists if map exists
+					size = mapparser::customMapSize(mapnumber);
 					map = new _cell*[size];
+					int mapfields[size*size];
+					int *maparr = mapparser::customMapGet(mapnumber, mapfields);
+
 					for(unsigned int x = 0; x < size; x++) {
 						map[x] = new _cell[size];
 						for(unsigned int y = 0; y < size; y++) {
-							if(map_temp[x][y] == 0) map[x][y].type = NONE;
-							else if(map_temp[x][y] == 1) map[x][y].type = BLOCKED;
-							else if(map_temp[x][y] == 2) map[x][y].type = SPAWN;
-							else if(map_temp[x][y] == 3) map[x][y].type = WAY;
+							if(maparr[x+size*y] == 0) map[x][y].type = NONE;
+							else if(maparr[x+size*y] == 1) map[x][y].type = BLOCKED;
+							else if(maparr[x+size*y] == 2) map[x][y].type = SPAWN;
+							else if(maparr[x+size*y] == 3) map[x][y].type = WAY;
 							else map[x][y].type = NONE;
 							map[x][y].tw = NULL;
 						}
@@ -178,7 +100,6 @@ class grid {
 		// stats of the running game 
 		static bool paused, gameover;
 		static double lives, score, money;
-		static unsigned int mapamount;
 		static unsigned int wave;
 		static class wave *wv;
 
@@ -269,9 +190,6 @@ class grid {
 				for(int y = 2; y < 11; y++) map[5][y].type = WAY;
 				map[5][2].type = SPAWN;
 			}
-			else if(mapid == MAPCUSTOM) {
-				createMapCustom(0);
-			}
 			else {
 				fprintf(stderr, "Error: unknown map (%d).\n", mapid);
 				exit(1);
@@ -297,7 +215,7 @@ class grid {
 			money = 500;
 			score = wave = 0;
 
-			unsigned int mapnumber = _mapnumber; // number of created map
+			unsigned int mapnumber = _mapnumber; // number of loaded file
 
 			// load map
 			if(mapid == MAPCUSTOM) {
@@ -316,24 +234,6 @@ class grid {
 			// set callback
 			draw::addRenderCallback(&grid::drawGrid,(void*)&grid::size,draw::HIGHEST);
 		}
-
-		static bool customMapExists( int mapnumber ) {//reset amount of maps
-			static char *path;
-			path = new char[512];
-			const char *home = getenv("HOME");
-			if(home != NULL) snprintf(path, 512, "%s/.config", home);
-			else strncpy(path, ".config", 512);
-			strncat(path, "/ponydefense", 512);
-			strncat(path, "/maps/", 512);
-
-			char fileName[20];
-			sprintf(fileName,"custom_map_%d",mapnumber);
-			strncat(path,fileName, 512);
-			std::ifstream infile(path);
-			if(infile.good()) return true;
-			else return false;
-		}
-		// render callback
 
 		// render callback
 		static void drawGrid() {
@@ -490,7 +390,6 @@ unsigned int grid::wave;
 MAP grid::mapid;
 bool grid::paused, grid::gameover;
 unsigned int grid::size;
-unsigned int grid::mapamount;
 double grid::stx, grid::sty, grid::margin;
 double grid::lives, grid::score, grid::money;
 class wave *grid::wv = NULL;

@@ -18,6 +18,7 @@ const char *VERSION = "V0.32-dev-tie-man";
 #include "texture.cpp"
 #include "draw.cpp"
 #include "menu.cpp"
+#include "mapparser.cpp"
 #include "grid.cpp"
 #include "stats.cpp"
 #include "pony.cpp"
@@ -86,6 +87,7 @@ void loadGame() {
 	}
 
 	// initialize game
+	// TODO: init_custom is missing, game would crash if you load a custom savegame
 	delete bgPonies;
 	grid::init((MAP)s.mapid);
 	if(s.mapid < MAP1 || s.mapid > MAPCUSTOM) {
@@ -430,7 +432,7 @@ void keyboardCallback(unsigned char key, int x, int y) {
 	if(key == '3') draw::speed = 4;
 	if(key == '4') draw::speed = 8;
 	if(key == '5') draw::speed = 16;
-	if(key == '?') draw::speed = 100;
+	if(key == '?') draw::speed = 100;// XXX remove that before pull request
 
 	// toggle debug window
 	if(key == 'd') {
@@ -470,13 +472,18 @@ void drawMainMenu() {
 	if(stats::has(MAP5)) m->addSubEntry("Map V", (char**)textMap5, tex::MAP_5_PREVIEW, 14);
 
 	//menu entry custom maps
-	const char *textMap6[] = {"", "", NULL};
-	m->addEntry("Custom Game", (char**)empty, 0, 1);
-	for(int ci=0; ci<32; ci++) {
-		if(grid::customMapExists(ci)) { 
-			char custom_entry_name[20];
-			sprintf(custom_entry_name, "Custom Map %d", ci+1);
-			if(stats::has(MAPCUSTOM)) m->addSubEntry(custom_entry_name, (char**)textMap6, tex::MAP_5_PREVIEW, 100+ci);
+	if(stats::has(MAPCUSTOM)) {
+		m->addEntry("Custom Game", (char**)empty, 0, 1);
+		m->addSubEntry("Refresh", (char**)empty, 0, 132);//this does nothing but reload the menu
+		const char *textMapCustom[] = {"Custom Map", "No Points", NULL};
+		for(int ci=0; ci<32; ci++) {
+			if(mapparser::customMapExists(ci)) { 
+				char custom_entry_name[20];
+				std::string mapname = mapparser::customMapName(ci);
+				if(mapname.length()) for(int i=0; i<mapname.length(); i++) custom_entry_name[i] = mapname.at(i);
+				else sprintf(custom_entry_name, "Custom Map %d", ci+1);
+				m->addSubEntry(custom_entry_name, (char**)textMapCustom, 0, 100+ci);
+			}
 		}
 	}
 
@@ -521,8 +528,59 @@ void drawMainMenu() {
 		m->addSubEntry("Map V", (char**)text, tex::MAP_5_PREVIEW, -1);
 	}
 
+	m->addEntry("Help", (char**)empty, 0, 23);
+		m->addSubEntry("Tutorial", (char**)empty, 0, 25);
+		m->addSubEntry("Custom Map Help", (char**)empty, 0, 24);
 	m->addEntry("Exit", (char**)empty, 0, 22);
 	m->showMenu();
+}
+
+void helpCallback(int a) {
+	drawMainMenu();
+	bgPonies->enableStats();
+};
+
+void helpMapsToggle(){
+	draw::setBackground(tex::BG_DESERT);
+	delete bgPonies;
+	bgPonies = new backgroundPonies(false);
+	const char *text[] = {	"",
+				"If you want to add your",
+				"own maps, save them as",
+				"'custom_map_X' in your ",
+				".config/ponydefense/maps/",
+				"directory. X has to be a",
+				"number between 0 and 31.",
+				"Details to the sytax of",
+				"mapfiles are explained",
+				"inside the template file.",
+				"The map system is",
+				"dynamic, you don't have",
+				"to restart or recompile.",
+				"",
+				NULL };
+	new question("Help", (char**)text, "Ok", NULL, 0, &helpCallback);
+}
+
+void helpTutorialToggle(){
+	draw::setBackground(tex::BG_DESERT);
+	delete bgPonies;
+	bgPonies = new backgroundPonies(false);
+	const char *text[] = {	"",
+				"Like in any other tower",
+				"defense game you have to",
+				"place towers to stop your",
+				"opponent on a fixed path.",
+				"",
+				"left click: build/upgrade",
+				"space:      play/pause",
+				"1...5:      control speed",
+				"",
+				"With each rank a new",
+				"tower or map is unlocked."
+				"",
+				NULL };
+	new question("Help", (char**)text, "Ok", NULL, 0, &helpCallback);
 }
 
 bool isCustomMap(int res) {
@@ -569,8 +627,13 @@ void mainMenuCallback(int res) {
 		delete bgPonies;
 		grid::init_custom(MAPCUSTOM, res-100);
 		grid::wv = new wave();
-		draw::setBackground(tex::BG_SNOW);
+		if(mapparser::customMapBackground(res-100) == 1) draw::setBackground(tex::BG_DESERT);
+		else if(mapparser::customMapBackground(res-100) == 2) draw::setBackground(tex::BG_SNOW);
+		else if(mapparser::customMapBackground(res-100) == 0) draw::setBackground(tex::BG_DESERT);
+		else draw::setBackground(tex::BG_DESERT);
 	}
+	else if(res == 24) helpMapsToggle();
+	else if(res == 25) helpTutorialToggle();
 	else if(res == 22) exit(0);
 	else if(res == 99) loadGame();
 	else drawMainMenu();
