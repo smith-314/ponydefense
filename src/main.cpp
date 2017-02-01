@@ -471,20 +471,19 @@ void drawMainMenu() {
 	if(stats::has(MAP4)) m->addSubEntry("Map IV", (char**)textMap4, tex::MAP_4_PREVIEW, 13);
 	if(stats::has(MAP5)) m->addSubEntry("Map V", (char**)textMap5, tex::MAP_5_PREVIEW, 14);
 
-	//menu entry custom maps
 	if(stats::has(MAPCUSTOM)) {
 		m->addEntry("Custom Game", (char**)empty, 0, 1);
-		m->addSubEntry("Refresh", (char**)empty, 0, 132);//this does nothing but reload the menu
-		const char *textMapCustom[] = {"Custom Map", "No Points", NULL};
-		for(int ci=0; ci<32; ci++) {
-			if(mapparser::customMapExists(ci)) { 
-				char custom_entry_name[20];
-				std::string mapname = mapparser::customMapName(ci);
-				if(mapname.length()) for(int i=0; i<mapname.length(); i++) custom_entry_name[i] = mapname.at(i);
-				else sprintf(custom_entry_name, "Custom Map %d", ci+1);
-				m->addSubEntry(custom_entry_name, (char**)textMapCustom, 0, 100+ci);
+			m->addSubEntry("Refresh", (char**)empty, 0, 132);
+			const char *textMapCustom[] = {"Custom Map", "No Points", NULL};
+			for(int ci=0; ci<32; ci++) {
+				if(mapparser::customMapValid(ci)) { 
+					char custom_entry_name[20];
+					std::string mapname = mapparser::customMapName(ci);
+					if(mapname.length()) for(int i=0; i<mapname.length(); i++) custom_entry_name[i] = mapname.at(i);
+					else sprintf(custom_entry_name, "Custom Map %d", ci+1);
+					m->addSubEntry(custom_entry_name, (char**)textMapCustom, 0, 100+ci);
+				}
 			}
-		}
 	}
 
 	char *loadBuf = savegameInfo();

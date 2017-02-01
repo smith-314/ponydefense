@@ -27,12 +27,8 @@ class mapparser {
 			}
 		}
 
-	public:
-		//generate the map template
-		static void generateMapTemplate(){
-		}
-		//check if map syntax is valid
-		static bool customMapValid(int mapnumber) {
+		//get map path
+		static char* getPath(int mapnumber) {
 			static char *path;
 			path = new char[512];
 			const char *home = getenv("HOME");
@@ -40,42 +36,14 @@ class mapparser {
 			else strncpy(path, ".config", 512);
 			strncat(path, "/ponydefense", 512);
 			strncat(path, "/maps/", 512);
+
 			char fileName[20];
 			sprintf(fileName,"custom_map_%d",mapnumber);
 			strncat(path,fileName, 512);
-
-			int rowcounter = 0;
-			bool  maptrigger=false, errortrigger=false;
-
-			int mapsize = customMapSize(mapnumber);
-			std::string line;
-
-			std::ifstream mapfile (path);
-			if (mapfile.is_open()) {
-			while(getline(mapfile,line)) {
-				//string parser
-				if(line.length()) {
-					if (checkline(line.at(0)) == 0) {
-					}
-					else if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
-						if(line == "[begin map]") maptrigger=true;
-						else if (line == "[end map]") maptrigger=false;
-					}
-					else if (checkline(line.at(0)) == 2 && maptrigger) {
-							if(line.length() != mapsize) errortrigger = true;
-							else if(rowcounter == mapsize) errortrigger = true;
-							rowcounter++;
-						}
-					}
-					//end string parser
-				}
-				mapfile.close();
-			}
-
-			return !errortrigger;
+			return path;
 		}
+
 		// check if map exists
-		// used in for loop for creating menu entries
 		// should be called first so path creation is here
 		static bool customMapExists( int mapnumber ) {
 			static char *path;
@@ -97,19 +65,52 @@ class mapparser {
 			else return false;
 		}
 
-		// maps background
-		static int customMapBackground( int mapnumber ) {
-			//get path of map
+	public:
+		// generate the map template
+		// maybe better to download it with git an move it while installing
+		static void generateMapTemplate(){
+		}
+
+		//check if map syntax is valid
+		static bool customMapValid(int mapnumber) {
 			static char *path;
-			path = new char[512];
-			const char *home = getenv("HOME");
-			if(home != NULL) snprintf(path, 512, "%s/.config", home);
-			else strncpy(path, ".config", 512);
-			strncat(path, "/ponydefense", 512);
-			strncat(path, "/maps/", 512);
-			char fileName[20];
-			sprintf(fileName,"custom_map_%d",mapnumber);
-			strncat(path,fileName, 512);
+			path = getPath(mapnumber);
+
+			int rowcounter = 0;
+			bool  maptrigger=false, errortrigger=false;
+
+			if(!customMapExists(mapnumber)) errortrigger = true;// check if map exists
+
+			int mapsize = customMapSize(mapnumber);
+			std::string line;
+
+			std::ifstream mapfile (path);
+			if (mapfile.is_open()) {
+			while(getline(mapfile,line)) {
+				if(line.length()) {
+						if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
+							if(line == "[begin map]") maptrigger=true;
+							else if (line == "[end map]") maptrigger=false;
+						}
+						else if (checkline(line.at(0)) == 2 && maptrigger) {
+							if(line.length() != mapsize) errortrigger = true;// check if line matches mapsize
+							else if(rowcounter == mapsize) errortrigger = true;// trigger when more rows than size are given
+							rowcounter++;
+						}
+					}
+				}
+				mapfile.close();
+			}
+			if(rowcounter != mapsize) errortrigger = true;//check if rows match mapsize
+
+			return !errortrigger;
+		}
+
+		// get map background
+		static int customMapBackground( int mapnumber ) {
+			
+			static char *path;
+			path = getPath(mapnumber);// get path of map
 
 			bool bgtrigger = false;
 
@@ -118,15 +119,15 @@ class mapparser {
 
 			std::ifstream mapfile (path);
 			if (mapfile.is_open() && customMapExists(mapnumber)) {
-			while(getline(mapfile,line)) {
-				if(line.length()) {
-					if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
-						if (line == "[begin bg]") bgtrigger=true;
-						else if (line == "[end bg]") bgtrigger=false;
+				while(getline(mapfile,line)) {
+					if(line.length()) {
+						if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
+							if (line == "[begin bg]") bgtrigger=true;
+							else if (line == "[end bg]") bgtrigger=false;
+						}
+						else if (checkline(line.at(0)) == 2 && bgtrigger) mapbg = line;
 					}
-					else if (checkline(line.at(0)) == 2 && bgtrigger) mapbg = line;
 				}
-			}
 			}
 			if(mapbg.length()) {
 				if(mapbg == "desert") return 1;
@@ -136,19 +137,12 @@ class mapparser {
 			else return 0;
 		}
 			
-		// get name of map written in mapfile
+		// TODO: add creator name
+		// get name of map
 		static std::string customMapName( int mapnumber ) {
-			//get path of map
+			
 			static char *path;
-			path = new char[512];
-			const char *home = getenv("HOME");
-			if(home != NULL) snprintf(path, 512, "%s/.config", home);
-			else strncpy(path, ".config", 512);
-			strncat(path, "/ponydefense", 512);
-			strncat(path, "/maps/", 512);
-			char fileName[20];
-			sprintf(fileName,"custom_map_%d",mapnumber);
-			strncat(path,fileName, 512);
+			path = getPath(mapnumber);// get path of map
 
 			bool nametrigger = false;
 
@@ -157,33 +151,25 @@ class mapparser {
 
 			std::ifstream mapfile (path);
 			if (mapfile.is_open() && customMapExists(mapnumber)) {
-			while(getline(mapfile,line)) {
-				if(line.length()) {
-					if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
-						if (line == "[begin name]") nametrigger=true;
-						else if (line == "[end name]") nametrigger=false;
+				while(getline(mapfile,line)) {
+					if(line.length()) {
+						if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
+							if (line == "[begin name]") nametrigger=true;
+							else if (line == "[end name]") nametrigger=false;
+						}
+						else if (checkline(line.at(0)) == 2 && nametrigger) mapname = line;
 					}
-					else if (checkline(line.at(0)) == 2 && nametrigger) mapname = line;
 				}
-			}
 			}
 			else mapname = "";
 			return mapname;
 		}
 
-		// get size of map written in mapfile
+		// get size of map
 		static int customMapSize( int mapnumber ) {
-			//get path of map
-			static char *path;
-			path = new char[512];
-			const char *home = getenv("HOME");
-			if(home != NULL) snprintf(path, 512, "%s/.config", home);
-			else strncpy(path, ".config", 512);
-			strncat(path, "/ponydefense", 512);
-			strncat(path, "/maps/", 512);
-			char fileName[20];
-			sprintf(fileName,"custom_map_%d",mapnumber);
-			strncat(path,fileName, 512);
+			
+			static char *path;// get path of map
+			path = getPath(mapnumber);
 
 			int mapsize = 0;
 			bool sizetrigger = false;
@@ -192,37 +178,26 @@ class mapparser {
 
 			std::ifstream mapfile (path);
 			if (mapfile.is_open()) {
-			while(getline(mapfile,line)) {
-				if(line.length()) {
-					if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
-						if (line == "[begin size]") sizetrigger=true;
-						else if (line == "[end size]") sizetrigger=false;
+				while(getline(mapfile,line)) {
+					if(line.length()) {
+						if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
+							if (line == "[begin size]") sizetrigger=true;
+							else if (line == "[end size]") sizetrigger=false;
+						}
+						else if (checkline(line.at(0)) == 2 && sizetrigger) mapsize = stoi(line);
 					}
-					else if (checkline(line.at(0)) == 2 && sizetrigger) mapsize = stoi(line);
 				}
-			}
 			}
 			return mapsize;
 		}
-		
 
-		// get content of custom map
+		// get content of map
 		static int* customMapGet(int mapnumber, int maparr[]) {
-			// get path for map
-			// dir creation should not be neccesary
 			
 			static char *path;
-			path = new char[512];
-			const char *home = getenv("HOME");
-			if(home != NULL) snprintf(path, 512, "%s/.config", home);
-			else strncpy(path, ".config", 512);
-			strncat(path, "/ponydefense", 512);
-			strncat(path, "/maps/", 512);
-			char fileName[20];
-			sprintf(fileName,"custom_map_%d",mapnumber);
-			strncat(path,fileName, 512);
+			path = getPath(mapnumber);// get path for map
 
-			std::string line;
+			std::string line;// string for line
 			int rowcounter = 0;// iterator for map rows
 			bool  maptrigger=false;// trigger for maptag
 
@@ -231,16 +206,14 @@ class mapparser {
 
 			std::ifstream mapfile (path);
 			if (mapfile.is_open() && customMapValid(mapnumber)) {
-			while(getline(mapfile,line)) {
-				if(line.length()) {
-					if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
-						if(line == "[begin map]") maptrigger=true;
-						else if (line == "[end map]") maptrigger=false;
-					}
-					else if (checkline(line.at(0)) == 2 && maptrigger) {
-							for(int j=0; j<mapsize; j++) {
-								maparr[j+mapsize*rowcounter] = getfield(line.at(j));
-							}
+				while(getline(mapfile,line)) {
+					if(line.length()) {
+						if (checkline(line.at(0)) == 1 && checkline(line.at(line.length()-1)) == 3) {
+							if(line == "[begin map]") maptrigger=true;
+							else if (line == "[end map]") maptrigger=false;
+						}
+						else if (checkline(line.at(0)) == 2 && maptrigger) {
+							for(int j=0; j<mapsize; j++) maparr[j+mapsize*rowcounter] = getfield(line.at(j));
 							rowcounter++;
 						}
 					}

@@ -33,8 +33,7 @@ class grid {
 		// initialize array
 		//create custom map from file
 		static void createMapCustom(int mapnumber) {
-				//load map functions 
-				if(mapparser::customMapExists(mapnumber) && mapparser::customMapValid(mapnumber)){//this should be unneccesary because menu link only exists if map exists
+				if(mapparser::customMapValid(mapnumber)){
 					size = mapparser::customMapSize(mapnumber);
 					map = new _cell*[size];
 					int mapfields[size*size];
@@ -205,7 +204,7 @@ class grid {
 		}
 
 		//init grid for custom map
-		static void init_custom(MAP _mapid, unsigned int _mapnumber) {
+		static void init_custom(MAP _mapid, unsigned int mapnumber) {
 			// reset stats 
 			if(map != NULL) cleanup();
 			mapid = _mapid;
@@ -214,8 +213,6 @@ class grid {
 			lives = 10;
 			money = 500;
 			score = wave = 0;
-
-			unsigned int mapnumber = _mapnumber; // number of loaded file
 
 			// load map
 			if(mapid == MAPCUSTOM) {
