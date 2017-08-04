@@ -271,8 +271,8 @@ class tex {
 		static int load(const char *path) {
 			char buffer[512];
 			strncpy(buffer, TEXTURE_PATH, 512);
-			strncat(buffer, path, 512);
-			strncat(buffer, ".png", 512);
+			strncat(buffer, path, 511);
+			strncat(buffer, ".png", 511);
 
 			int id = SOIL_load_OGL_texture(buffer, SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
 			if(id == 0) {

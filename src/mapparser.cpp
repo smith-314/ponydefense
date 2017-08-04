@@ -61,6 +61,8 @@ class mapparser {
 			sprintf(fileName,"custom_map_%d",mapnumber);
 			strncat(path,fileName, 512);
 			std::ifstream infile(path);
+
+			delete[] path;
 			if(infile.good()) return true;
 			else return false;
 		}
