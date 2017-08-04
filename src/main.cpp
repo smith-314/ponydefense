@@ -13,7 +13,7 @@
 #include <GL/glut.h>
 #include <FTGL/ftgl.h>
 
-const char *VERSION = "V0.33"
+const char *VERSION = "V0.33";
 
 #include "texture.cpp"
 #include "draw.cpp"
