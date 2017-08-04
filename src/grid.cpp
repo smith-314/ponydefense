@@ -10,7 +10,7 @@ enum TARGETTYPE {CLOSEST, FIRST, LAST, STRONGEST};
 enum PONYTYPE {RARITY, FLUTTERSHY, PINKIE_PIE, TWILIGHT_SPARKLE, TROJAN, RARITY_SHIELD, RAINBOW_DASH, APPLEJACK, TWILIGHT_SPARKLE_SHIELD};
 enum DMGTYPE {DMGAIR, DMGGROUND};
 enum CELLTYPE {NONE, WAY, SPAWN, BLOCKED};
-enum MAP {MAP1, MAP2, MAP3, MAP4, MAP5};
+enum MAP {MAP1, MAP2, MAP3, MAP4, MAP5, MAPCUSTOM};
 
 // cell structure for grid array
 struct _cell {
@@ -31,36 +31,59 @@ int xM = -1, yM = -1;
 class grid {
 	private:
 		// initialize array
-		static void createMap(int sz) {
-			size = sz;
-			map = new _cell*[size];
-			for(unsigned int x = 0; x < size; x++) {
-				map[x] = new _cell[size];
-				for(unsigned int y = 0; y < size; y++) {
-					map[x][y].type = NONE;
-					map[x][y].tw = NULL;
+		//create custom map from file
+		static void createMapCustom(int mapnumber) {
+				if(mapparser::customMapValid(mapnumber)){
+					size = mapparser::customMapSize(mapnumber);
+					map = new _cell*[size];
+					int mapfields[size*size];
+					int *maparr = mapparser::customMapGet(mapnumber, mapfields);
+
+					for(unsigned int x = 0; x < size; x++) {
+						map[x] = new _cell[size];
+						for(unsigned int y = 0; y < size; y++) {
+							if(maparr[x+size*y] == 0) map[x][y].type = NONE;
+							else if(maparr[x+size*y] == 1) map[x][y].type = BLOCKED;
+							else if(maparr[x+size*y] == 2) map[x][y].type = SPAWN;
+							else if(maparr[x+size*y] == 3) map[x][y].type = WAY;
+							else map[x][y].type = NONE;
+							map[x][y].tw = NULL;
+						}
+					}
+				}
+				else createMap(11);
+			}
+
+			static void createMap(int sz) {
+				size = sz;
+				map = new _cell*[size];
+				for(unsigned int x = 0; x < size; x++) {
+					map[x] = new _cell[size];
+					for(unsigned int y = 0; y < size; y++) {
+						map[x][y].type = NONE;
+						map[x][y].tw = NULL;
+					}
 				}
 			}
-		}
 
-		// status frame: title
-		static void drawTitle(double ypos, const char *title) {
-			color *cFrame = new color(0,0,0,0.6);
-			color *cTitle = new color(1,1,1,0.6);
-			vec *v1 = new vec(-1.0, ypos+0.05);
-			vec *v2 = new vec(-0.85, ypos);
-			draw::rect(v1, v2->clone(), cFrame->clone());
-			vec *v3 = new vec(margin-0.1, ypos);
-			v1 = new vec(-0.85, ypos+0.05);
-			draw::triangle(v1, v2, v3, cFrame);
-			draw::print(new vec(-0.99, ypos+0.01), title, cTitle);
-		}
+			// status frame: title
+			static void drawTitle(double ypos, const char *title) {
+				color *cFrame = new color(0,0,0,0.6);
+				color *cTitle = new color(1,1,1,0.6);
+				vec *v1 = new vec(-1.0, ypos+0.05);
+				vec *v2 = new vec(-0.85, ypos);
+				draw::rect(v1, v2->clone(), cFrame->clone());
+				vec *v3 = new vec(margin-0.1, ypos);
+				v1 = new vec(-0.85, ypos+0.05);
+				draw::triangle(v1, v2, v3, cFrame);
+				draw::print(new vec(-0.99, ypos+0.01), title, cTitle);
+			}
 
-		// status frame: background
-		static void drawFrame(double ypos, double ysize) {
-			color *cFrame = new color(0,0,0,0.5);
-			vec *v1 = new vec(-1.0, ypos);
-			vec *v2 = new vec(margin-0.1, ypos-ysize);
+			// status frame: background
+			static void drawFrame(double ypos, double ysize) {
+				color *cFrame = new color(0,0,0,0.5);
+				vec *v1 = new vec(-1.0, ypos);
+				vec *v2 = new vec(margin-0.1, ypos-ysize);
 			draw::rect(v1, v2, cFrame);
 		}
 
@@ -165,6 +188,35 @@ class grid {
 				for(int x = 0; x < 11; x++) map[x][2].type = WAY;
 				for(int y = 2; y < 11; y++) map[5][y].type = WAY;
 				map[5][2].type = SPAWN;
+			}
+			else {
+				fprintf(stderr, "Error: unknown map (%d).\n", mapid);
+				exit(1);
+			}
+
+			// set relative cellsize
+			sty = 2.0/size;
+			margin = (-2.0 + draw::ar);
+			stx = (1.0-margin)/size;
+
+			// set callback
+			draw::addRenderCallback(&grid::drawGrid,(void*)&grid::size,draw::HIGHEST);
+		}
+
+		//init grid for custom map
+		static void init_custom(MAP _mapid, unsigned int mapnumber) {
+			// reset stats 
+			if(map != NULL) cleanup();
+			mapid = _mapid;
+			paused = true;
+			gameover = false;
+			lives = 10;
+			money = 500;
+			score = wave = 0;
+
+			// load map
+			if(mapid == MAPCUSTOM) {
+				createMapCustom(mapnumber);
 			}
 			else {
 				fprintf(stderr, "Error: unknown map (%d).\n", mapid);
