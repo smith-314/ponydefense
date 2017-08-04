@@ -103,6 +103,7 @@ class mapparser {
 			}
 			if(rowcounter != mapsize) errortrigger = true;//check if rows match mapsize
 
+			delete[] path;
 			return !errortrigger;
 		}
 
@@ -129,6 +130,8 @@ class mapparser {
 					}
 				}
 			}
+
+			delete[] path;
 			if(mapbg.length()) {
 				if(mapbg == "desert") return 1;
 				else if(mapbg == "snow") return 2;
@@ -162,6 +165,8 @@ class mapparser {
 				}
 			}
 			else mapname = "";
+
+			delete[] path;
 			return mapname;
 		}
 
@@ -188,6 +193,8 @@ class mapparser {
 					}
 				}
 			}
+			
+			delete[] path;
 			return mapsize;
 		}
 
@@ -220,6 +227,8 @@ class mapparser {
 				}
 				mapfile.close();
 			}
+
+			delete[] path;
 			return maparr;
 		}
 
