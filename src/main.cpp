@@ -13,7 +13,7 @@
 #include <GL/glut.h>
 #include <FTGL/ftgl.h>
 
-const char *VERSION = "V0.32-dev-tie-man";
+const char *VERSION = "V0.33"
 
 #include "texture.cpp"
 #include "draw.cpp"
@@ -432,7 +432,6 @@ void keyboardCallback(unsigned char key, int x, int y) {
 	if(key == '3') draw::speed = 4;
 	if(key == '4') draw::speed = 8;
 	if(key == '5') draw::speed = 16;
-	if(key == '?') draw::speed = 100;// XXX remove that before pull request
 
 	// toggle debug window
 	if(key == 'd') {

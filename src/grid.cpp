@@ -31,7 +31,7 @@ int xM = -1, yM = -1;
 class grid {
 	private:
 		// initialize array
-		//create custom map from file
+		// create custom map from file
 		static void createMapCustom(int mapnumber) {
 				if(mapparser::customMapValid(mapnumber)){
 					size = mapparser::customMapSize(mapnumber);
@@ -203,7 +203,7 @@ class grid {
 			draw::addRenderCallback(&grid::drawGrid,(void*)&grid::size,draw::HIGHEST);
 		}
 
-		//init grid for custom map
+		// init grid for custom map
 		static void init_custom(MAP _mapid, unsigned int mapnumber) {
 			// reset stats 
 			if(map != NULL) cleanup();
