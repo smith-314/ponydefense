@@ -453,7 +453,7 @@ void drawMainMenu() {
 	}
 
 	// create main menu
-	class menu *m = new menu("PonyDefense",  new vec(-0.25,0.3), 0.5, &mainMenuCallback, 16);
+	class menu *m = new menu("PonyDefense",  new vec(-0.25,0.3), 0.5, &mainMenuCallback, 8);
 	const char *empty[] = {"", NULL};
 	m->addEntry("New Game", (char**)empty, 0, 1);
 	const char *textMap1[] = {"Easy", "Multiplier: 1", NULL};
