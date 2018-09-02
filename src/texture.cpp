@@ -270,10 +270,10 @@ class tex {
 	private:
 		// function to load a texture
 		static int load(const char *path) {
-			char buffer[512] = {0};
-			strncat(buffer, TEXTURE_PATH, 511);
-			strncat(buffer, path, 511);
-			strncat(buffer, ".png", 511);
+			char buffer[PATH_MAX] = {0};
+			strncat(buffer, TEXTURE_PATH, PATH_MAX-1);
+			strncat(buffer, path, PATH_MAX-1);
+			strncat(buffer, ".png", PATH_MAX-1);
 
 			int id = SOIL_load_OGL_texture(buffer, SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
 			if(id == 0) {

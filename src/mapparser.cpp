@@ -12,11 +12,11 @@ class mapparser {
 			if(i == 32) return;
 
 			// generate path and open file
-			char *path = stats::genConfigPath();
-			strncat(path, "/", 511);
-			strncat(path, name, 511);
+			char path[PATH_MAX];
+			stats::genConfigPath(path);
+			strncat(path, "/", PATH_MAX-1);
+			strncat(path, name, PATH_MAX-1);
 			FILE *fp = fopen(path, "r");
-			delete[] path;
 			if(fp == NULL) return;
 
 			// skip empty lines or those with #
@@ -81,12 +81,12 @@ class mapparser {
 			}
 
 			// iterate map_* files in ~/.config/ponydefense
-			char *path = stats::genConfigPath();
+			char path[PATH_MAX];
+			stats::genConfigPath(path);
 			DIR *pdir = opendir(path);
 			if(pdir == NULL) {
 				fprintf(stderr, "Error: can't open directory:\n%s\n", path);
 				perror(NULL);
-				delete[] path;
 				return;
 			}
 
@@ -97,16 +97,15 @@ class mapparser {
 				ent = readdir(pdir);
 			}
 			closedir(pdir);
-			delete[] path;
 		}
 
 		// write example map file
 		static void writeExample() {
-			char *path = stats::genConfigPath();
-			strncat(path, "/map_Example", 511);
+			char path[PATH_MAX];
+			stats::genConfigPath(path);
+			strncat(path, "/map_Example", PATH_MAX-1);
 			
 			FILE *fp = fopen(path, "w");
-			delete[] path;
 			if(fp == NULL) return;
 
 			const char *example =

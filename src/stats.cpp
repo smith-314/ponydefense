@@ -28,27 +28,29 @@ class stats {
 			unsigned int points = 0, waves = 0;
 		};
 
-		static char *path;
+		static char path[PATH_MAX];
 		static struct mapstats maps[5];
 		static double t;
 
 		// generate ~/.config/ponydefense path
-		static char *genConfigPath() {
-			char *conf = new char[512](); // zero initialized
+		static void genConfigPath(char *str) {
 			const char *home = getenv("HOME");
-			if(home != NULL) snprintf(conf, 512, "%s/.config", home);
-			else strncat(conf, ".config", 511);
-			createDir(conf);
-			strncat(conf, "/ponydefense", 511);
-			createDir(conf);
-			return conf;
+			if(home != NULL && strlen(home) < PATH_MAX)
+				snprintf(str, PATH_MAX, "%s/.config", home);
+			else {
+				*str = '\0';
+				strncat(str, ".config", PATH_MAX-1);
+			}
+			createDir(str);
+			strncat(str, "/ponydefense", PATH_MAX-1);
+			createDir(str);
 		}
 
 		// load stats/highscore
 		static bool load() {
 			// try to read savegame
-			path = genConfigPath();
-			strncat(path, "/savegame", 511);
+			genConfigPath(path);
+			strncat(path, "/savegame", PATH_MAX-1);
 			FILE *fp = fopen(path, "rb");
 			if(fp != NULL) {
 				fseek(fp, 0, SEEK_END);
@@ -238,6 +240,6 @@ class stats {
 // static definitions (stats class)
 double stats::points = 0, stats::t = 0;
 unsigned int stats::rank = 0;
-char *stats::path = NULL;
+char stats::path[PATH_MAX];
 struct stats::mapstats stats::maps[5];
 class menuBase stats::base;

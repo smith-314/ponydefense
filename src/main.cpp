@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <math.h>
 #include <dirent.h>
+#include <limits.h>
 
 #include <SOIL/SOIL.h>
 #include <GL/glut.h>
