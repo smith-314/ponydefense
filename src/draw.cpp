@@ -618,6 +618,7 @@ class draw {
 		}
 };
 
+
 // static definitions (draw class)
 FTGL::FTGLfont *draw::ftFont = NULL;
 int draw::fontSize = 0;

@@ -28,23 +28,27 @@ class stats {
 			unsigned int points = 0, waves = 0;
 		};
 
-		static char *path; // path to savegame
+		static char *path;
 		static struct mapstats maps[5];
 		static double t;
 
+		// generate ~/.config/ponydefense path
+		static char *genConfigPath() {
+			char *conf = new char[512](); // zero initialized
+			const char *home = getenv("HOME");
+			if(home != NULL) snprintf(conf, 512, "%s/.config", home);
+			else strncat(conf, ".config", 511);
+			createDir(conf);
+			strncat(conf, "/ponydefense", 511);
+			createDir(conf);
+			return conf;
+		}
+
 		// load stats/highscore
 		static bool load() {
-			// generate path
-			path = new char[512];
-			const char *home = getenv("HOME");
-			if(home != NULL) snprintf(path, 512, "%s/.config", home);
-			else strncpy(path, ".config", 512);
-			createDir(path);
-			strncat(path, "/ponydefense", 512);
-			createDir(path);
-			strncat(path, "/savegame", 512);
-
 			// try to read savegame
+			path = genConfigPath();
+			strncat(path, "/savegame", 511);
 			FILE *fp = fopen(path, "rb");
 			if(fp != NULL) {
 				fseek(fp, 0, SEEK_END);
@@ -73,7 +77,6 @@ class stats {
 
 		// save stats/highscore
 		static void save() {
-			if(path == NULL) return;
 			FILE *fp = fopen(path, "wb");
 			if(fp == NULL) {
 				fprintf(stderr, "Error: can't write file:\n%s\n", path);
@@ -83,7 +86,7 @@ class stats {
 				fwrite((void*)&points, sizeof(points), 1, fp);
 				fwrite((void*)&maps, sizeof(maps), 1, fp);
 				// save running game
-				if(!grid::gameover) saveGame(fp);
+				if(!grid::gameover && grid::mapid != MAPCUSTOM) saveGame(fp);
 				fclose(fp);
 			}
 		}
@@ -126,7 +129,6 @@ class stats {
 
 		static bool has(MAP mapid) {
 			if(mapid == MAP1) return true;
-			if(mapid == MAPCUSTOM) return true;
 			if((mapid == MAP2 || mapid == MAP3) && rank >= 2) return true;
 			if(mapid == MAP4 && rank >= 5) return true;
 			if(mapid == MAP5 && rank >= 8) return true;
@@ -140,7 +142,6 @@ class stats {
 			else if(mapid == MAP3) multi = 3;
 			else if(mapid == MAP4) multi = 3;
 			else if(mapid == MAP5) multi = 4;
-			else if(mapid == MAPCUSTOM) multi = 0;//mod
 			if(grid::wave < 37) {
 				points+=pts*multi;
 				grid::score+=pts*multi;
@@ -152,7 +153,7 @@ class stats {
 			}
 
 			// if better - save highscore
-			if(grid::wave > maps[mapid].waves && mapid != MAPCUSTOM) { //mod it werkz
+			if(grid::wave > maps[mapid].waves && mapid != MAPCUSTOM) {
 				maps[mapid].waves = grid::wave;
 				maps[mapid].points = grid::score;
 			}
@@ -232,6 +233,7 @@ class stats {
 			draw::print(new vec(0.915, -0.99), VERSION, new color(0,0,0,0.6));
 		}
 };
+
 
 // static definitions (stats class)
 double stats::points = 0, stats::t = 0;

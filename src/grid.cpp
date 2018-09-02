@@ -31,59 +31,36 @@ int xM = -1, yM = -1;
 class grid {
 	private:
 		// initialize array
-		// create custom map from file
-		static void createMapCustom(int mapnumber) {
-				if(mapparser::customMapValid(mapnumber)){
-					size = mapparser::customMapSize(mapnumber);
-					map = new _cell*[size];
-					int mapfields[size*size];
-					int *maparr = mapparser::customMapGet(mapnumber, mapfields);
-
-					for(unsigned int x = 0; x < size; x++) {
-						map[x] = new _cell[size];
-						for(unsigned int y = 0; y < size; y++) {
-							if(maparr[x+size*y] == 0) map[x][y].type = NONE;
-							else if(maparr[x+size*y] == 1) map[x][y].type = BLOCKED;
-							else if(maparr[x+size*y] == 2) map[x][y].type = SPAWN;
-							else if(maparr[x+size*y] == 3) map[x][y].type = WAY;
-							else map[x][y].type = NONE;
-							map[x][y].tw = NULL;
-						}
-					}
-				}
-				else createMap(11);
-			}
-
-			static void createMap(int sz) {
-				size = sz;
-				map = new _cell*[size];
-				for(unsigned int x = 0; x < size; x++) {
-					map[x] = new _cell[size];
-					for(unsigned int y = 0; y < size; y++) {
-						map[x][y].type = NONE;
-						map[x][y].tw = NULL;
-					}
+		static void createMap(int sz) {
+			size = sz;
+			map = new _cell*[size];
+			for(unsigned int x = 0; x < size; x++) {
+				map[x] = new _cell[size];
+				for(unsigned int y = 0; y < size; y++) {
+					map[x][y].type = NONE;
+					map[x][y].tw = NULL;
 				}
 			}
+		}
 
-			// status frame: title
-			static void drawTitle(double ypos, const char *title) {
-				color *cFrame = new color(0,0,0,0.6);
-				color *cTitle = new color(1,1,1,0.6);
-				vec *v1 = new vec(-1.0, ypos+0.05);
-				vec *v2 = new vec(-0.85, ypos);
-				draw::rect(v1, v2->clone(), cFrame->clone());
-				vec *v3 = new vec(margin-0.1, ypos);
-				v1 = new vec(-0.85, ypos+0.05);
-				draw::triangle(v1, v2, v3, cFrame);
-				draw::print(new vec(-0.99, ypos+0.01), title, cTitle);
-			}
+		// status frame: title
+		static void drawTitle(double ypos, const char *title) {
+			color *cFrame = new color(0,0,0,0.6);
+			color *cTitle = new color(1,1,1,0.6);
+			vec *v1 = new vec(-1.0, ypos+0.05);
+			vec *v2 = new vec(-0.85, ypos);
+			draw::rect(v1, v2->clone(), cFrame->clone());
+			vec *v3 = new vec(margin-0.1, ypos);
+			v1 = new vec(-0.85, ypos+0.05);
+			draw::triangle(v1, v2, v3, cFrame);
+			draw::print(new vec(-0.99, ypos+0.01), title, cTitle);
+		}
 
-			// status frame: background
-			static void drawFrame(double ypos, double ysize) {
-				color *cFrame = new color(0,0,0,0.5);
-				vec *v1 = new vec(-1.0, ypos);
-				vec *v2 = new vec(margin-0.1, ypos-ysize);
+		// status frame: background
+		static void drawFrame(double ypos, double ysize) {
+			color *cFrame = new color(0,0,0,0.5);
+			vec *v1 = new vec(-1.0, ypos);
+			vec *v2 = new vec(margin-0.1, ypos-ysize);
 			draw::rect(v1, v2, cFrame);
 		}
 
@@ -113,7 +90,7 @@ class grid {
 		}
 
 		// initialize grid
-		static void init(MAP _mapid) {
+		static void init(MAP _mapid, int custom_size = 0, const char *custom_data = NULL) {
 			// reset stats 
 			if(map != NULL) cleanup();
 			mapid = _mapid;
@@ -189,34 +166,18 @@ class grid {
 				for(int y = 2; y < 11; y++) map[5][y].type = WAY;
 				map[5][2].type = SPAWN;
 			}
-			else {
-				fprintf(stderr, "Error: unknown map (%d).\n", mapid);
-				exit(1);
-			}
-
-			// set relative cellsize
-			sty = 2.0/size;
-			margin = (-2.0 + draw::ar);
-			stx = (1.0-margin)/size;
-
-			// set callback
-			draw::addRenderCallback(&grid::drawGrid,(void*)&grid::size,draw::HIGHEST);
-		}
-
-		// init grid for custom map
-		static void init_custom(MAP _mapid, unsigned int mapnumber) {
-			// reset stats 
-			if(map != NULL) cleanup();
-			mapid = _mapid;
-			paused = true;
-			gameover = false;
-			lives = 10;
-			money = 500;
-			score = wave = 0;
-
-			// load map
-			if(mapid == MAPCUSTOM) {
-				createMapCustom(mapnumber);
+			else if(mapid == MAPCUSTOM) {
+				createMap(custom_size);
+				for(int y = 0; y < custom_size; y++) {
+					for(int x = 0; x < custom_size; x++) {
+						if(custom_data[x+y*custom_size] == 'w')
+							map[x][y].type = WAY;
+						else if(custom_data[x+y*custom_size] == 's')
+							map[x][y].type = SPAWN;
+						else if(custom_data[x+y*custom_size] == 'b')
+							map[x][y].type = BLOCKED;
+					}
+				}
 			}
 			else {
 				fprintf(stderr, "Error: unknown map (%d).\n", mapid);

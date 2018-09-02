@@ -6,21 +6,20 @@
 #include <functional>
 #include <errno.h>
 #include <math.h>
-#include <limits>
-#include <fstream>
+#include <dirent.h>
 
 #include <SOIL/SOIL.h>
 #include <GL/glut.h>
 #include <FTGL/ftgl.h>
 
-const char *VERSION = "V0.33";
+const char *VERSION = "V0.34";
 
 #include "texture.cpp"
 #include "draw.cpp"
 #include "menu.cpp"
-#include "mapparser.cpp"
 #include "grid.cpp"
 #include "stats.cpp"
+#include "mapparser.cpp"
 #include "pony.cpp"
 #include "effects.cpp"
 #include "tower.cpp"
@@ -87,17 +86,15 @@ void loadGame() {
 	}
 
 	// initialize game
-	// TODO: init_custom is missing, game would crash if you load a custom savegame
 	delete bgPonies;
 	grid::init((MAP)s.mapid);
-	if(s.mapid < MAP1 || s.mapid > MAPCUSTOM) {
-	//if(s.mapid < MAP1 || s.mapid > MAP5) {
+	if(s.mapid < MAP1 || s.mapid > MAP5) {
 		fprintf(stderr, "Error: savegame is damaged - unknown map.\n");
 		exit(1);
 	}
 	grid::wv = new wave();
 	stats::t = 0;
-	if(s.mapid == MAP4 || s.mapid == MAP5 || s.mapid == MAPCUSTOM)
+	if(s.mapid == MAP4 || s.mapid == MAP5)
 		draw::setBackground(tex::BG_SNOW);
 	else draw::setBackground(tex::BG_DESERT);
 
@@ -470,19 +467,12 @@ void drawMainMenu() {
 	if(stats::has(MAP4)) m->addSubEntry("Map IV", (char**)textMap4, tex::MAP_4_PREVIEW, 13);
 	if(stats::has(MAP5)) m->addSubEntry("Map V", (char**)textMap5, tex::MAP_5_PREVIEW, 14);
 
-	if(stats::has(MAPCUSTOM)) {
-		m->addEntry("Custom Game", (char**)empty, 0, 1);
-			m->addSubEntry("Refresh", (char**)empty, 0, 132);
-			const char *textMapCustom[] = {"Custom Map", "No Points", NULL};
-			for(int ci=0; ci<32; ci++) {
-				if(mapparser::customMapValid(ci)) { 
-					char custom_entry_name[20];
-					std::string mapname = mapparser::customMapName(ci);
-					if(mapname.length()) for(int i=0; i<mapname.length(); i++) custom_entry_name[i] = mapname.at(i);
-					else sprintf(custom_entry_name, "Custom Map %d", ci+1);
-					m->addSubEntry(custom_entry_name, (char**)textMapCustom, 0, 100+ci);
-				}
-			}
+	mapparser::fetchMaps();
+	for(int i = 0; i < 32; i++) {
+		if(mapparser::map_size[i] > 0) {
+			const char *textCustomMap[] = {"Custom Map", "", NULL};
+			m->addSubEntry(mapparser::map_name[i]+4, (char**)textCustomMap, tex::MAP_CUSTOM_PREVIEW, 200+i);
+		}
 	}
 
 	char *loadBuf = savegameInfo();
@@ -530,13 +520,6 @@ void drawMainMenu() {
 	m->showMenu();
 }
 
-bool isCustomMap(int res) {
-	for( int ic=0; ic<32; ic++) {
-		if( res == ic + 100 ) return true;
-	}
-	return false;
-}
-
 void mainMenuCallback(int res) {
 	if(res == 10) {
 		delete bgPonies;
@@ -568,17 +551,13 @@ void mainMenuCallback(int res) {
 		grid::wv = new wave();
 		draw::setBackground(tex::BG_SNOW);
 	}
-	// custom map init
-	// 100-131 reserved for custom maps
-	else if( isCustomMap(res) ) {
+	else if(res >= 200) {
 		delete bgPonies;
-		grid::init_custom(MAPCUSTOM, res-100);
+		grid::init(MAPCUSTOM, mapparser::map_size[res-200], mapparser::map_buf[res-200]);
 		grid::wv = new wave();
-		if(mapparser::customMapBackground(res-100) == 1) draw::setBackground(tex::BG_DESERT);
-		else if(mapparser::customMapBackground(res-100) == 2) draw::setBackground(tex::BG_SNOW);
-		else if(mapparser::customMapBackground(res-100) == 0) draw::setBackground(tex::BG_DESERT);
-		else draw::setBackground(tex::BG_DESERT);
+		draw::setBackground(tex::BG_DESERT);
 	}
+
 	else if(res == 22) exit(0);
 	else if(res == 99) loadGame();
 	else drawMainMenu();
@@ -618,6 +597,8 @@ int main(int argc, char **argv) {
 					"",
 					NULL };
 		new question("Tutorial", (char**)text, "Ok", NULL, 0, &tutorialCallback);
+		// write example map
+		mapparser::writeExample();
 	}
 	else {
 		// initialize main menu

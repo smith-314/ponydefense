@@ -12,7 +12,7 @@ class tex {
 		// common
 		static int FLAMES, SHIELD, HAWHAW, BG_DESERT, BG_SNOW;
 		static int MAP_1_PREVIEW, MAP_2_PREVIEW, MAP_3_PREVIEW, MAP_4_PREVIEW;
-		static int MAP_5_PREVIEW;
+		static int MAP_5_PREVIEW, MAP_CUSTOM_PREVIEW;
 		// ponies
 		static int PONY_RARITY, PONY_APPLEJACK, PONY_FLUTTERSHY;
 		static int PONY_PINKIE_PIE, PONY_RAINBOW_DASH, PONY_TWILIGHT_SPARKLE;
@@ -92,6 +92,7 @@ class tex {
 			MAP_3_PREVIEW = load("misc/MAP_3_PREVIEW");
 			MAP_4_PREVIEW = load("misc/MAP_4_PREVIEW");
 			MAP_5_PREVIEW = load("misc/MAP_5_PREVIEW");
+			MAP_CUSTOM_PREVIEW = load("misc/MAP_CUSTOM_PREVIEW");
 
 			PONY_RARITY = load("Rarity/PONY_RARITY");
 			PONY_APPLEJACK = load("Applejack/PONY_APPLEJACK");
@@ -269,8 +270,8 @@ class tex {
 	private:
 		// function to load a texture
 		static int load(const char *path) {
-			char buffer[512];
-			strncpy(buffer, TEXTURE_PATH, 512);
+			char buffer[512] = {0};
+			strncat(buffer, TEXTURE_PATH, 511);
 			strncat(buffer, path, 511);
 			strncat(buffer, ".png", 511);
 
@@ -290,7 +291,7 @@ int tex::BG_DESERT = 0, tex::BG_SNOW = 0;
 
 int tex::MAP_1_PREVIEW = 0, tex::MAP_2_PREVIEW = 0;
 int tex::MAP_3_PREVIEW = 0, tex::MAP_4_PREVIEW = 0;
-int tex::MAP_5_PREVIEW = 0;
+int tex::MAP_5_PREVIEW = 0, tex::MAP_CUSTOM_PREVIEW = 0;
 
 int tex::PONY_RARITY = 0;
 int tex::PONY_APPLEJACK = 0;
