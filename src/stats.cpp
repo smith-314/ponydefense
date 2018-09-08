@@ -22,6 +22,11 @@ class stats {
 			}
 		}
 
+		// ranking equation returning points needed
+		static int rank_func(int i) {
+			return i*i*i*50 + i*i*750 + i*350;
+		}
+
 	public:
 		// structure to save highscores
 		struct mapstats {
@@ -96,7 +101,7 @@ class stats {
 		// calculate rank
 		static unsigned int getRank() {
 			for(int i = 1; i < 10; i++) {
-				if(points < i*i*i*500) return i-1;
+				if(points < rank_func(i)) return i-1;
 			}
 			return 9;
 		}
@@ -225,7 +230,7 @@ class stats {
 			}
 			const char *text[] = {textRank, textPoints, textNextRank, NULL};
 			if(rank == 9) textNextRank[0] = '\0';
-			else snprintf(textNextRank, 512, "Next:  %d", (rank+1)*(rank+1)*(rank+1)*500-(int)points);
+			else snprintf(textNextRank, 512, "Next:  %d", rank_func(rank+1) - (int)points);
 			vec *v = new vec(-0.25, -0.2);
 			if(t >= 1) base.drawMessage("Rank", (char**)text, texID, v, 0.51);
 			else base.drawBuild((char**)text, v, 0.5, t);
