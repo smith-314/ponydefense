@@ -69,7 +69,7 @@ class vec {
 		}
 };
 
-// callback-structure for linked list of the render-functions
+// callback structure for linked list of the render functions
 struct _callback {
 	void *id; // random value to identify the callback
 	unsigned int priority; // order of execution
@@ -157,7 +157,7 @@ class draw {
 			// create window
 			glutCreateWindow("PonyDefense");
 
-			// set (dummy) input-hooks
+			// set (dummy) input hooks
 			setMouseCallback(&_dummyMouse);
 			setMouseMotionCallback(&_dummyMouseMotion);
 			setKeyboardCallback(&_dummyKeyboard);
@@ -230,14 +230,9 @@ class draw {
 			while(cbptr != NULL) {
 				next = cbptr->next;
 				if(cbptr->priority == IGNORE) {
-					if(cbptr == cbList) {
-						cbList = cbList->next;
-						delete cbptr;
-					}
-					else {
-						before->next = cbptr->next;
-						delete cbptr;
-					}
+					if(cbptr == cbList) cbList = cbList->next;
+					else before->next = cbptr->next;
+					delete cbptr;
 				}
 				else before = cbptr;
 				cbptr = next;
@@ -611,10 +606,10 @@ class draw {
 
 				// old periodic arrangement:
 				/*
-				   double stepx = bgSize*(1/ar)*2*relx/wx; // relative Schrittweite
+				   double stepx = bgSize*(1/ar)*2*relx/wx;
 				   double stepy = bgSize*2*rely/wy;
 
-				//double fix =  bgSize/wx; // Korrekturfaktor
+				//double fix =  bgSize/wx;
 				vec v(-relx+stepx/2,rely-stepy/2);
 				do {
 				do {

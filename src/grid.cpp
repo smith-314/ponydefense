@@ -276,7 +276,8 @@ class grid {
 				snprintf(buffer, 250, "%dx", draw::speed);
 				draw::print(new vec(-0.88, pos-0.04), buffer, c->clone());
 			}
-			// DEBUG
+
+			// draw debug info
 			if(draw::debugMode) {
 				pos = -0.5;
 				drawTitle(pos, "DEBUG");

@@ -351,7 +351,7 @@ class menuEntry: menuBase {
 			draw::addRenderCallback(std::bind(&menuEntry::draw, this), (void*)title, draw::LOW);
 		}
 
-		// renderr callback
+		// render callback
 		void draw() { 
 			if(!draw::enableDraw) return;
 			// delete after close animation
