@@ -119,7 +119,7 @@ class draw {
 
 	public:
 		// callback priorities
-		enum {HIGHEST, HIGH, DEFAULT, LOW, LOWEST};
+		enum {IGNORE, HIGHEST, HIGH, DEFAULT, LOW, LOWEST};
 		// window and scene size
 		static int wx, wy; // window
 		static int sx, sy; // scene
@@ -223,6 +223,24 @@ class draw {
 					}
 					cbptr = cbptr->next;
 				}
+			}
+
+			// delete callbacks with priority IGNORE
+			struct _callback *next, *before, *cbptr = cbList;
+			while(cbptr != NULL) {
+				next = cbptr->next;
+				if(cbptr->priority == IGNORE) {
+					if(cbptr == cbList) {
+						cbList = cbList->next;
+						delete cbptr;
+					}
+					else {
+						before->next = cbptr->next;
+						delete cbptr;
+					}
+				}
+				else before = cbptr;
+				cbptr = next;
 			}
 
 			if(debugMode) {
@@ -535,16 +553,11 @@ class draw {
 		// delete render callback entry
 		static void delRenderCallback(void *id) {
 			struct _callback *cbptr = cbList;
-			if(cbList->id == id) {
-				cbList = cbList->next;
-				delete cbptr;
-				return;
-			}
-			while(cbptr->next->id != id && cbptr->next != NULL) cbptr = cbptr->next;
-			if(cbptr->next == NULL) return;
-			struct _callback *cbToDel = cbptr->next;
-			cbptr->next = cbptr->next->next;
-			delete cbToDel;
+			while(cbptr->next != NULL && (cbptr->id != id || cbptr->priority == IGNORE))
+				cbptr = cbptr->next;
+
+			// tag with priority IGNORE for deletion
+			if(cbptr->id == id) cbptr->priority = IGNORE;
 		}
 
 		// wrappers to set/get callbacks...
