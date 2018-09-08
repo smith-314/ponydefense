@@ -39,8 +39,6 @@ class tracer {
 			delete p1; delete p2;
 		}
 		void draw() { 
-			if(draw::debugMode) fprintf(stderr, "Callback: tracer()\n");
-
 			if(type == RIFLE) draw::line(p1->clone(), p2->clone(), new color(0.5,0.5,0.5,t), size);
 			if(type == RAILGUN) {
 				draw::line(p1->clone(), p2->clone(), new color(1,0.5,0,0.25*t), size*2);
@@ -78,8 +76,6 @@ class explosion {
 		}
 
 		void draw() { 
-			if(draw::debugMode) fprintf(stderr, "Callback: explosion()\n");
-
 			draw::tex(pos->clone(), 2*(size - t*size), tex::FLAMES, 0, t);
 			t-=speed;
 			if(t <= 0) delete this;
@@ -105,8 +101,6 @@ class flames {
 		}
 
 		void draw() { 
-			if(draw::debugMode) fprintf(stderr, "Callback: flames()\n");
-
 			t+=0.04;
 			if(draw::speed != 1) {
 				t+=0.04*draw::speed*draw::speed; // prevent performance overkill
@@ -140,8 +134,6 @@ class radsignal {
 		}
 
 		void draw() { 
-			if(draw::debugMode) fprintf(stderr, "Callback: radsignal()\n");
-
 			draw::fullCircle(pos->clone(), 0.6*t*size, c->clone());
 			t+=step;
 			c->t-=step/2;
@@ -168,8 +160,6 @@ class blood {
 		}
 
 		void draw() { 
-			if(draw::debugMode) fprintf(stderr, "Callback: blood()\n");
-
 			if(shield) draw::tex(pos->clone(), 0.75*grid::sty, tex::BLOOD_SHIELD, rot);
 			else {
 				draw::tex(pos->clone(), 0.75*grid::sty, tex::BLOOD_DEFAULT, rot);
@@ -211,8 +201,6 @@ class backgroundPonies {
 		}
 
 		void draw() { 
-			if(draw::debugMode) fprintf(stderr, "Callback: backgroundPonies()\n");
-
 			for(int i = 0; i < 14; i++) {
 				p[i]->x+=0.007;
 				p[i]->y+=0.007;

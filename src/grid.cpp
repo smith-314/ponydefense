@@ -195,8 +195,6 @@ class grid {
 
 		// render callback
 		static void drawGrid() {
-			if(draw::debugMode) fprintf(stderr, "Callback: drawGrid()\n");
-
 			// draw grid lines
 			for(unsigned int x = 1; x < size; x++) { // x-lines
 				vec *v1 = new vec(margin+x*stx,1.0);

@@ -382,8 +382,6 @@ class tower {
 		}
 
 		void draw() { 
-			if(draw::debugMode) fprintf(stderr, "Callback: tower()\n");
-
 			// special case: shield
 			// => only draw texture
 			if(type == SHIELD) {
@@ -743,8 +741,6 @@ class supTower {
 		}
 
 		void draw() { 
-			if(draw::debugMode) fprintf(stderr, "Callback: suptower()\n");
-
 			// iterate ponies and set slowdown
 			class regPony *ptr = ponyList;
 			while(ptr != NULL) {

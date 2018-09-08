@@ -21,7 +21,6 @@ class fadeTex {
 		}
 
 		void draw() { 
-			if(draw::debugMode) fprintf(stderr, "Callback: fadeTex()\n");
 			draw::tex(pos->clone(), size, texID, 0, 1.0*ticks/ticksMax);
 			ticks--;
 			if(ticks <= 0) delete this;
@@ -380,7 +379,6 @@ class pony: pathfinding {
 
 		// render callback
 		void draw() { 
-			if(draw::debugMode) fprintf(stderr, "Callback: pony()\n");
 			draw::tex(getPos(), 0.8*grid::sty, texID, rot, 1, mirr);
 			if(shield > 0) draw::tex(getPos(), 0.8*grid::sty, tex::PONY_SHIELD);
 			drawBars();

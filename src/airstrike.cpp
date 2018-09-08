@@ -97,7 +97,6 @@ class airstrike {
 		}
 
 		void draw() {
-			if(draw::debugMode) fprintf(stderr, "Callback: airstrike()\n");
 			vec *rainbow = new vec(x+step*t, y+step*t);
 			vec *trail = new vec(x+step*(t-0.05), y+step*(t-0.05));
 			draw::tex(rainbow, 8*grid::sty*(1-t), tex::PONY_RAINBOW_DASH_FLYING);
