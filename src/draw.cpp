@@ -2,6 +2,8 @@
 // OpenGL/GLUT wrappers
 
 
+#define TARGET_FPS 60
+
 // sqrt approximation
 double sqrt(double n) {
 	double curr = (n + 1) / 2;
@@ -138,6 +140,12 @@ class draw {
 		static int frame;
 		static int fps;
 
+		// redraw timer callback to ensure fps limit
+		static void redrawTimer(int param) {
+			glutPostRedisplay();
+			glutTimerFunc(1000/TARGET_FPS, redrawTimer, 0);
+		}
+
 		// initialize OpenGL/GLUT
 		static void init(int *argc, char **argv) {
 			glutInit(argc, argv);
@@ -156,11 +164,11 @@ class draw {
 
 			// set GLUT callbacks
 			glutDisplayFunc(draw::render);
-			glutIdleFunc(draw::render);
 			glutReshapeFunc(draw::resize);
 			glutMouseFunc(draw::mouse);
 			glutPassiveMotionFunc(draw::mouseMotion);
 			glutKeyboardFunc(draw::keyboard);
+			glutTimerFunc(1000/TARGET_FPS, redrawTimer, 0);
 
 			// load fonts and textures
 			loadFont();
